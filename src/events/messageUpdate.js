@@ -1,21 +1,37 @@
-const { messageUpdate } = require('../../utils/logging');
+const { messageUpdate, Error, Debug } = require('../../utils/logging');
 
 module.exports = {
     name: 'messageUpdate',
-    execute(oldMessage, newMessage) {
+    async execute(oldMessage, newMessage) {
         try {
+            if (newMessage.partial) await newMessage.fetch();
+            if (oldMessage.partial) await oldMessage.fetch();
+
             let server = newMessage.guild ? newMessage.guild.name : "Direct Message";
             let channel = newMessage.channel ? newMessage.channel.name : "Direct Message";
             let globalUsername = newMessage.author.tag;
-            let messageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
+            let oldmessageContent = oldMessage ? oldMessage.content : " ";
+            let newmessageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
 
-            if (newMessage.embeds.length > 0) {
-                messageContent += ' EMBED '.bgYellow.black;
+            if (oldMessage.author.bot) {
+                return;
             }
 
-            messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${messageContent.yellow} (Updated)`);
+            if (oldMessage.partial) {
+                oldmessageContent = ' PARTIAL '.bgCyan.red;
+            }
+
+            if (oldMessage.embeds.length > 0) {
+                oldmessageContent += ' EMBED '.bgYellow.black;
+            }
+
+            if (newMessage.embeds.length > 0) {
+                newmessageContent += ' EMBED '.bgYellow.black;
+            }
+
+            messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${oldmessageContent} -> ${newmessageContent.green} (Updated)`);
         } catch (error) {
-            console.error(error);
+            Error(`Error executing ${module.exports.name} event: ${error.message}`);
         }
     }
 };

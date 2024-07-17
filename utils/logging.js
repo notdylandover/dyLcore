@@ -41,6 +41,26 @@ function info(m, c) {
     console.log(`${time.grey}\t${c(m)}`);
 }
 
+module.exports.ServerLog = function(m) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`${time.grey}\t${'[SERVER]'.cyan} ${m.grey}`);
+}
+
+module.exports.ServerError = function(m) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`${time.red}\t${'[SERVER]'.red} ${m.red}`);
+}
+
+module.exports.ServerValid = function(m) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`${time.grey}\t${'[SERVER]'.green} ${m.green}`);
+}
+
+module.exports.Live = function(m) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`${time.grey}\t${m.magenta}`);
+};
+
 module.exports.Feedback = function(a, m) {
     const time = new Date().toLocaleTimeString();
     console.log(`${time.grey}\t${a.cyan} sent feedback: ${(' ' + m + ' ').black.bgGreen}`);
@@ -86,6 +106,12 @@ module.exports.Error = function(m) {
     dbOutput('Error', m);
 };
 
+module.exports.CommandError = function(commandName, stack) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`${time.red}\t${`Error executing ${commandName}: ${stack}`.red}`);
+    dbOutput('Command Error', m);
+};
+
 module.exports.Warn = function(m) {
     const time = new Date().toLocaleTimeString();
     console.log(`${time.yellow}\t${m.yellow}`);
@@ -126,7 +152,6 @@ module.exports.autoModerationRuleUpdate = function(m) {
 
 module.exports.cacheSweep = function(m) {
     info(m, colors.green);
-    dbOutput('Cache Sweep', m);
 };
 
 module.exports.channelCreate = function(m) {
@@ -170,7 +195,6 @@ module.exports.emojiUpdate = function(m) {
 
 module.exports.guildAuditLogEntryCreate = function(m) {
     info(m, colors.grey);
-    dbOutput('Audit Log', m);
 };
 
 module.exports.guildAvailable = function(m) {

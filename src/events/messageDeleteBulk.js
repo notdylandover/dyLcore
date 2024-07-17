@@ -1,8 +1,12 @@
-const { messageDeleteBulk } = require('../../utils/logging');
+const { messageDeleteBulk, Error } = require('../../utils/logging');
 
 module.exports = {
     name: 'messageDeleteBulk',
     execute(messages) {
-        messageDeleteBulk(`${messages.size} messages bulk deleted`);
+        try {
+            messageDeleteBulk(`${messages.size} messages bulk deleted`);
+        } catch (error) {
+            Error(`Error executing ${module.exports.name}: ${error.message}`);
+        }
     }
 };

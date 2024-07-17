@@ -1,6 +1,6 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require("discord.js");
 const { ErrorEmbed, LoadingEmbed, SuccessEmbed } = require("../utils/embeds");
-const { Error } = require("../utils/logging");
+const { CommandError } = require("../utils/logging");
 const { METADATA } = require('../utils/metadata');
 
 module.exports = {
@@ -29,8 +29,9 @@ module.exports = {
                 await interaction.deleteReply();
             }
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

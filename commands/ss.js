@@ -1,19 +1,27 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { ErrorEmbed, LoadingEmbed, MediaEmbed, FileEmbed } = require("../utils/embeds");
-const { Error, Debug } = require('../utils/logging');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { ErrorEmbed, FileEmbed } = require("../utils/embeds");
+const { Error, CommandError } = require('../utils/logging');
 const { METADATA } = require('../utils/metadata');
 
 const puppeteer = require('puppeteer');
 
+const command = new SlashCommandBuilder()
+    .setName('ss')
+    .setDescription(METADATA.ss.description)
+    .addStringOption(option => option
+        .setName('url')
+        .setDescription('The URL of the webpage')
+        .setRequired(true)
+    )
+    .setDMPermission(false)
+    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
+
+command.integration_types = [
+    1
+];
+
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('ss')
-        .setDescription(METADATA.ss.description)
-        .addStringOption(option => option
-            .setName('url')
-            .setDescription('The URL of the webpage')
-            .setRequired(true)
-        ),
+    data: command,
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -45,8 +53,9 @@ module.exports = {
             });
 
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -65,5 +74,5 @@ module.exports = {
                 }
             }
         }
-    },
+    }
 };

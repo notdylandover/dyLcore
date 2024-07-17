@@ -1,18 +1,20 @@
 const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { ErrorEmbed } = require("../utils/embeds");
-const { Error } = require("../utils/logging");
+const { Error, CommandError } = require("../utils/logging");
 const { createCanvas, loadImage } = require('canvas');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const sharp = require('sharp');
 
+const command = new ContextMenuCommandBuilder()
+    .setName("Make It A Quote")
+    .setType(ApplicationCommandType.Message)
+    .setDMPermission(true)
+    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
+
 module.exports = {
-    data: new ContextMenuCommandBuilder()
-        .setName("Make It A Quote")
-        .setType(ApplicationCommandType.Message)
-        .setDMPermission(true)
-        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+    data: command,
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -49,13 +51,9 @@ module.exports = {
             const avatarX = 0;
             const avatarY = (canvasHeight - avatarSize) / 2;
 
-            // Load avatar image
             const avatarImage = await loadImage(avatarUrl);
-
-            // Draw avatar image
             ctx.drawImage(avatarImage, avatarX, avatarY, avatarSize, avatarSize);
 
-            // Apply fade-out effect to black
             const gradient = ctx.createLinearGradient(avatarX, 0, avatarX + avatarSize, 0);
             gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
@@ -102,7 +100,6 @@ module.exports = {
             ctx.font = '16px Arial';
             ctx.fillText(`- ${user.displayName}`, contentX, authorY);
 
-            // Save canvas to file
             const tempDir = path.join(__dirname, '../temp');
             if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir, { recursive: true });
@@ -117,8 +114,9 @@ module.exports = {
                 fs.unlinkSync(quoteImagePath);
             });
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

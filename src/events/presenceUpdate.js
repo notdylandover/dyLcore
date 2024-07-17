@@ -25,84 +25,88 @@ function activitiesAreEqual(oldActivities, newActivities) {
 module.exports = {
     name: 'presenceUpdate',
     execute(oldPresence, newPresence) {
-        if (newPresence.user.bot) {
-            return;
-        }
-
-        const userId = newPresence.userID;
-        const oldStatus = oldPresence ? oldPresence.status : undefined;
-        const newStatus = newPresence.status;
-
-        const oldActivity = oldPresence ? oldPresence.activities : undefined;
-        const newActivity = newPresence ? newPresence.activities : undefined;
-
-        if (oldStatus !== newStatus) {
-            const user = newPresence.user.username;
-
-            let statusSymbol = '⬤';
-            let statusColor = '';
-
-            switch (newStatus) {
-                case 'online':
-                    statusColor = 'green';
-                    break;
-                case 'idle':
-                    statusColor = 'yellow';
-                    break;
-                case 'dnd':
-                    statusColor = 'red';
-                    break;
-                case 'offline':
-                    statusColor = 'grey';
-                    break;
-                default:
-                    statusColor = 'white';
-                    break;
+        try {
+            if (newPresence.user.bot) {
+                return;
             }
 
-            let presenceDetails = `${statusSymbol[statusColor]}`;
+            const userId = newPresence.userID;
+            const oldStatus = oldPresence ? oldPresence.status : undefined;
+            const newStatus = newPresence.status;
 
-            if (!lastStatus.has(userId) || lastStatus.get(userId) !== newStatus) {
-                presenceUpdate(`${presenceDetails} ${user.grey}`);
+            const oldActivity = oldPresence ? oldPresence.activities : undefined;
+            const newActivity = newPresence ? newPresence.activities : undefined;
 
-                lastStatus.set(userId, newStatus);
-            } 
-        } else if (!activitiesAreEqual(oldActivity, newActivity)) {
-            const user = newPresence.user.username;
+            if (oldStatus !== newStatus) {
+                const user = newPresence.user.username;
 
-            if (newActivity && newActivity.length > 0) {
-                let activityName = '';
-                let activityDetails = '';
-                let activityState = '';
+                let statusSymbol = '⬤';
+                let statusColor = '';
 
-                for (const activity of newActivity) {
-                    if (activity.type !== 4) {
-                        if (activity.name) {
-                            activityName = `- ${activity.name} `;
-                        }
-                        
-                        if (activity.details) {
-                            activityDetails = `- ${activity.details} ` || '';
-                        }
-
-                        if (activity.state) {
-                            activityState = `- ${activity.state}` || '';
-                        }
-                        
+                switch (newStatus) {
+                    case 'online':
+                        statusColor = 'green';
                         break;
-                    } else {
-                        activityState = `- ${activity.state}` || '';
-                    }
+                    case 'idle':
+                        statusColor = 'yellow';
+                        break;
+                    case 'dnd':
+                        statusColor = 'red';
+                        break;
+                    case 'offline':
+                        statusColor = 'grey';
+                        break;
+                    default:
+                        statusColor = 'white';
+                        break;
                 }
 
-                const activityText = `${activityName}${activityDetails}${activityState}`.trim();
+                let presenceDetails = `${statusSymbol[statusColor]}`;
 
-                if (activityText && (!lastStatus.has(userId) || lastStatus.get(userId) !== activityText)) {
-                    presenceUpdate(`${user} ${activityText}`);
+                if (!lastStatus.has(userId) || lastStatus.get(userId) !== newStatus) {
+                    presenceUpdate(`${presenceDetails} ${user.grey}`);
 
-                    lastStatus.set(userId, activityText);
-                }  
+                    lastStatus.set(userId, newStatus);
+                } 
+            } else if (!activitiesAreEqual(oldActivity, newActivity)) {
+                const user = newPresence.user.username;
+
+                if (newActivity && newActivity.length > 0) {
+                    let activityName = '';
+                    let activityDetails = '';
+                    let activityState = '';
+
+                    for (const activity of newActivity) {
+                        if (activity.type !== 4) {
+                            if (activity.name) {
+                                activityName = `- ${activity.name} `;
+                            }
+                            
+                            if (activity.details) {
+                                activityDetails = `- ${activity.details} ` || '';
+                            }
+
+                            if (activity.state) {
+                                activityState = `- ${activity.state}` || '';
+                            }
+                            
+                            break;
+                        } else {
+                            activityState = `- ${activity.state}` || '';
+                        }
+                    }
+
+                    const activityText = `${activityName}${activityDetails}${activityState}`.trim();
+
+                    if (activityText && (!lastStatus.has(userId) || lastStatus.get(userId) !== activityText)) {
+                        presenceUpdate(`${user} ${activityText}`);
+
+                        lastStatus.set(userId, activityText);
+                    }  
+                }
             }
+        } catch (error) {
+            Error(`Error executing ${module.exports.name}: ${error.message}`);
         }
     }
 };

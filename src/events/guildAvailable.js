@@ -3,6 +3,6 @@ const { guildAvailable } = require('../../utils/logging');
 module.exports = {
     name: 'guildAvailable',
     execute(guild) {
-        guildAvailable(`✓ ${guild.name} - ${guild.id}`);
+        guildAvailable(`\u2713\t${guild.name} - ${guild.id}`);
     }
 };

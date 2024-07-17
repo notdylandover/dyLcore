@@ -1,19 +1,20 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
-const { Debug, DiscordJS, Valid, Invalid, Error, debug } = require('../utils/logging');
+const { DiscordJS, Invalid, Error } = require('../utils/logging');
+
+const isLive = require('../utils/isLive');
+const setPresence = require("../utils/setPresence");
+const cron = require("node-cron");
+const fs = require('fs');
+const path = require('path');
+
+// require('../utils/update');
+require('dotenv').config();
 
 const Discord = require('discord.js');
 const { version: DJSVersion } = Discord;
 
-const fs = require('fs');
-const path = require('path');
-
-require('dotenv').config();
-
-const client = new Discord.Client({
-    intents: INTENTS,
-    partials: PARTIALS,
-});
+const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
 
 DiscordJS(`DiscordJS v${DJSVersion}`);
 client.login(process.env.TOKEN);
@@ -25,6 +26,19 @@ const eventFiles = fs.readdirSync(path.resolve(__dirname, 'events')).filter(file
 const verifiedEvents = [];
 const missingEvents = [];
 const invalidEvents = [];
+const channels = [
+    'atuesports',
+    'bunkroger',
+    'cowboyblaze',
+    'ladyelaine_1',
+    'maiotheone',
+    'drifloom_',
+    'tkrak3n',
+    'crumbdumbster',
+    'not_dyln',
+    'nerdyc160',
+    'wotuh'
+];
 
 for (const file of eventFiles) {
     try {
@@ -35,14 +49,14 @@ for (const file of eventFiles) {
                 try {
                     await event.execute(...args);
                 } catch (error) {
-                    Error(`Error executing event ${event.name}: ${error.message}`);
+                    Error(`Error executing ${event.name}: ${error.message}`);
                 }
             });
         } else {
             invalidEvents.push(file);
         }
     } catch (error) {
-        Error(error.message);
+        Error(`Error executing ${file}: ${error.message}`);
         missingEvents.push(file);
     }
 }
@@ -51,10 +65,6 @@ const allClientEvents = Object.keys(Discord.Client.prototype.constructor.name ? 
 const implementedEvents = new Set(verifiedEvents);
 
 const missingClientEvents = allClientEvents.filter(event => !implementedEvents.has(event));
-
-Valid(verifiedEvents.join('\n'));
-Valid(INTENTS.join('\n'));
-Valid(PARTIALS.join('\n'));
 
 if (missingEvents.length > 0) {
     Invalid(missingEvents.join('\n'));
@@ -75,5 +85,10 @@ if (missingEvents.length > 0) {
 if (invalidEvents.length > 0) {
     invalidEvents.forEach(file => Invalid(file));
 }
+
+cron.schedule("*/15 * * * * *", async () => {
+    setPresence(client);
+    await isLive(client, channels);
+});
 
 module.exports = client;

@@ -1,14 +1,20 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const { StatsEmbed, ErrorEmbed } = require('../utils/embeds');
-const { End, Error, Info } = require('../utils/logging');
+const { CommandError } = require('../utils/logging');
 const { METADATA } = require('../utils/metadata');
 
+const command = new SlashCommandBuilder()
+    .setName('stats')
+    .setDescription(METADATA.stats.description)
+    .setDMPermission(true)
+    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
+
+command.integration_types = [
+    1
+];
+
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('stats')
-        .setDescription(METADATA.stats.description)
-        .setDMPermission(true)
-        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+    data: command,
     async execute(interaction) {
         await interaction.deferReply();
         
@@ -46,8 +52,9 @@ module.exports = {
             const botInfoEmbed = StatsEmbed(serversCount, shardsCount, uptimeFormatted);
             await interaction.editReply({ embeds: [botInfoEmbed], ephemeral: true });
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

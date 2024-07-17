@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { ErrorEmbed, LoadingEmbed } = require("../utils/embeds");
-const { Error, Debug } = require("../utils/logging");
+const { Error, CommandError } = require("../utils/logging");
 const { METADATA } = require('../utils/metadata');
 
 const QRCode = require('qrcode');
@@ -25,27 +25,33 @@ function getColorHex(colorName) {
     return null;
 }
 
+const command = new SlashCommandBuilder()
+    .setName("qr")
+    .setDescription(METADATA.qr.description)
+    .addStringOption(option => option
+        .setName("link")
+        .setDescription("The link to convert to a QR code")
+        .setRequired(true)
+    )
+    .addStringOption(option => option
+        .setName("background")
+        .setDescription("The color of the background")
+        .setRequired(false)
+    )
+    .addStringOption(option => option
+        .setName("foreground")
+        .setDescription("The color of the foreground")
+        .setRequired(false)
+    )
+    .setDMPermission(true)
+    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
+
+command.integration_types = [
+    1
+];
+
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("qr")
-        .setDescription(METADATA.qr.description)
-        .addStringOption(option => option
-            .setName("link")
-            .setDescription("The link to convert to a QR code")
-            .setRequired(true)
-        )
-        .addStringOption(option => option
-            .setName("background")
-            .setDescription("The color of the background")
-            .setRequired(false)
-        )
-        .addStringOption(option => option
-            .setName("foreground")
-            .setDescription("The color of the foreground")
-            .setRequired(false)
-        )
-        .setDMPermission(true)
-        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+    data: command,
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -89,8 +95,9 @@ module.exports = {
                 fs.unlinkSync(qrCodePath);
             });
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

@@ -1,11 +1,17 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
-const { ErrorEmbed, CoinflipEmbed } = require('../utils/embeds');
+const { ErrorEmbed, BallEmbed } = require('../utils/embeds');
 const { CommandError } = require('../utils/logging');
 const { METADATA } = require('../utils/metadata');
+const { EIGHTBALL } = require('../utils/constants');
 
 const command = new SlashCommandBuilder()
-    .setName('coinflip')
-    .setDescription(METADATA.coinflip.description)
+    .setName('8ball')
+    .setDescription(METADATA.eightball.description)
+    .addStringOption(option => option
+        .setName('question')
+        .setDescription('The question you want to ask the 8ball')
+        .setRequired(true)
+    )
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
 
@@ -19,10 +25,12 @@ module.exports = {
         await interaction.deferReply();
 
         try {
-            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            const resultEmbed = CoinflipEmbed(result);
+            const author = interaction.user;
+            const question = interaction.options.getString('question');
+            const response = EIGHTBALL[Math.floor(Math.random() * EIGHTBALL.length)];
 
-            await interaction.editReply({ embeds: [resultEmbed], ephemeral: true });
+            const ballEmbed = BallEmbed(author, question, response);
+            await interaction.editReply({ embeds: [ballEmbed] });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 

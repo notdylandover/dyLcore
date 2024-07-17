@@ -1,20 +1,11 @@
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v10");
-const { Debug, Done, ready, Error } = require("../../utils/logging");
-
-const cron = require("node-cron");
-const fs = require("fs");
-const path = require("path");
+const { ready, Error, Valid } = require("../../utils/logging");
 
 const setPresence = require("../../utils/setPresence");
-
-function updatePresence(client) {
-    try {
-        setPresence(client);
-    } catch (e) {
-        Error(`Failed to update presence: ${e.message}`);
-    }
-}
+const fs = require("fs");
+const path = require("path");
+const startServer = require("../../utils/server");
 
 function updateCommands() {
     const commands = [];
@@ -30,7 +21,6 @@ function updateCommands() {
 
         if (command.data && command.execute) {
             commands.push(command.data.toJSON());
-            Debug(`${command.data.name}`);
         }
     }
 
@@ -41,8 +31,6 @@ module.exports = {
     name: "ready",
     async execute(client) {
         try {
-            updatePresence(client);
-
             const commands = updateCommands();
             const rest = new REST({ version: "10" }).setToken(client.token);
 
@@ -50,19 +38,15 @@ module.exports = {
                 await rest.put(Routes.applicationCommands(client.user.id), {
                     body: commands,
                 });
-            } catch (e) {
-                Error(`Failed to update commands: ${e.message}`);
-            } finally {
-                Done(`Updated commands`);
+            } catch (error) {
+                Error(`Failed to update commands: ${error.message}`);
             }
-        } catch (e) {
-            Error(`Failed to update commands: ${e.message}`);
-        } finally {
-            ready(`Ready as ${client.user.tag}`);
 
-            cron.schedule("*/15 * * * * *", async () => {
-                updatePresence(client);
-            });
+            setPresence(client);
+            startServer(client);
+
+        } catch (error) {
+            Error(`Error executing ${module.exports.name}: ${error.message}`);
         }
-    },
+    }
 };

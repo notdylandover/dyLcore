@@ -1,11 +1,11 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
-const { ErrorEmbed, CoinflipEmbed } = require('../utils/embeds');
-const { CommandError } = require('../utils/logging');
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { ErrorEmbed, InspireEmbed } = require("../utils/embeds");
+const { Error, CommandError } = require("../utils/logging");
 const { METADATA } = require('../utils/metadata');
 
 const command = new SlashCommandBuilder()
-    .setName('coinflip')
-    .setDescription(METADATA.coinflip.description)
+    .setName("inspire")
+    .setDescription(METADATA.inspire.description)
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
 
@@ -19,10 +19,17 @@ module.exports = {
         await interaction.deferReply();
 
         try {
-            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            const resultEmbed = CoinflipEmbed(result);
+            const quoteResponse = await fetch('https://inspirobot.me/api?generate=true');
+            if (!quoteResponse.ok) throw new Error('Failed to fetch quote');
 
-            await interaction.editReply({ embeds: [resultEmbed], ephemeral: true });
+            const quoteImageUrl = await quoteResponse.text();
+
+            const imageResponse = await fetch(quoteImageUrl);
+            if (!imageResponse.ok) throw new Error('Failed to fetch image');
+
+            const quoteEmbed = InspireEmbed(quoteImageUrl);
+
+            await interaction.editReply({ embeds: [quoteEmbed] });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
@@ -34,5 +41,5 @@ module.exports = {
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
         }
-    }
+    },
 };

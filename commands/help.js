@@ -2,6 +2,7 @@ const { PermissionFlagsBits, SlashCommandBuilder, ActionRowBuilder, ButtonBuilde
 const { METADATA } = require('../utils/metadata');
 const { ICONS, LINKS } = require('../utils/constants');
 const { DetailedHelpEmbed, ErrorEmbed, HelpEmbed } = require('../utils/embeds');
+const { CommandError } = require('../utils/logging');
 
 function renderCommandList(commands, descriptions) {
     let maxLength = Math.max(...(commands.map(el => el.length))) + 3;
@@ -80,19 +81,18 @@ module.exports = {
                 return HelpEmbed(title, description, helpMessage);
             };
 
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('previouspage')
-                        .setEmoji(ICONS.left)
-                        .setStyle(ButtonStyle.Secondary)
-                        .setDisabled(currentPage === 0),
-                    new ButtonBuilder()
-                        .setCustomId('nextpage')
-                        .setEmoji(ICONS.right)
-                        .setStyle(ButtonStyle.Secondary)
-                        .setDisabled(currentPage === categoryKeys.length - 1)
-                );
+            const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('previouspage')
+                    .setEmoji(ICONS.left)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                    .setCustomId('nextpage')
+                    .setEmoji(ICONS.right)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(currentPage === categoryKeys.length - 1)
+            );
 
             const message = await interaction.editReply({ embeds: [generateEmbed(currentPage)], components: [row], fetchReply: true });
 
@@ -106,19 +106,18 @@ module.exports = {
                     currentPage++;
                 }
 
-                await i.update({ embeds: [generateEmbed(currentPage)], components: [new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('previouspage')
-                            .setEmoji(ICONS.left)
-                            .setStyle(ButtonStyle.Secondary)
-                            .setDisabled(currentPage === 0),
-                        new ButtonBuilder()
-                            .setCustomId('nextpage')
-                            .setEmoji(ICONS.right)
-                            .setStyle(ButtonStyle.Secondary)
-                            .setDisabled(currentPage === categoryKeys.length - 1)
-                    )] });
+                await i.update({ embeds: [generateEmbed(currentPage)], components: [new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('previouspage')
+                        .setEmoji(ICONS.left)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(currentPage === 0),
+                    new ButtonBuilder()
+                        .setCustomId('nextpage')
+                        .setEmoji(ICONS.right)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(currentPage === categoryKeys.length - 1)
+                )] });
             });
 
             collector.on('end', async collected => {
@@ -129,8 +128,9 @@ module.exports = {
                 }
             });
         } catch(error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

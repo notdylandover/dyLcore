@@ -1,7 +1,12 @@
 .env
-updateNotes.md
 package-lock.json
+run.bat
 
 /node_modules
 /temp
 /data
+/api
+/pages
+
+/utils/server.js
+/utils/update.js

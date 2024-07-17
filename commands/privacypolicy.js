@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { ErrorEmbed, InfoEmbed } = require("../utils/embeds");
-const { Error } = require("../utils/logging");
+const { ErrorEmbed, PolicyEmbed } = require("../utils/embeds");
+const { CommandError } = require("../utils/logging");
 const { METADATA } = require('../utils/metadata');
 
 module.exports = {
@@ -10,22 +10,21 @@ module.exports = {
         .setDMPermission(true)
         .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply();
 
         try {
-            const policyEmbed = InfoEmbed(`For more information about the privacy policy, please visit https://dylandover.dev/privacypolicy`);
+            const policyEmbed = PolicyEmbed();
             await interaction.editReply({ embeds: [policyEmbed] });
         } catch (error) {
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
-            Error(`Error executing ${interaction.commandName}: ${error.message}`);
+            CommandError(interaction.commandName, error.stack);
+
+            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.stack);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
             } else {
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
-
-            process.exit();
         }
-    },
+    }
 };
