@@ -20,21 +20,25 @@ module.exports.StarboardMessage = function(messageAuthor, authorAvatar, messageC
         )
 };
 
-module.exports.EmbedTest = async function(URL) {
+module.exports.EmbedTest = function(URL) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.test)
         .setTitle(`This is a title`)
-        .setURL('https://dylandover.dev')
-        .setAuthor({
-            name: 'This is author text with an icon and URL shortcut',
-            iconURL: LINKS.brand,
-            url: 'https://dylandover.dev'
-        })
-        .setDescription('This is a description')
         .setImage(URL)
+}
+
+module.exports.OutageEmbed = function(authorAvatar, timestamp, description) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.outage)
+        .setAuthor({
+            name: `dyLn`,
+            iconURL: authorAvatar
+        })
+        .setTitle(`Outage Report - <t:${timestamp}:F>`)
+        .setDescription(description)
         .setFooter({
             iconURL: LINKS.brand,
-            text: 'This is footer text with an icon'
+            text: TEXT.brand
         })
 }
 
@@ -310,13 +314,14 @@ module.exports.Leaderboard = function(title, description, fields) {
         .addFields(fields)
 };
 
-module.exports.StatsEmbed = function(serverCount, shardCount, uptime) {
+module.exports.StatsEmbed = function(serverCount, shardCount, uptime, memoryUsage) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)
         .setDescription(
             `${ICONS.home} **Server Count**: \` ${serverCount} \`\n` +
             `${ICONS.shard} **Shard Count**: \` ${shardCount} \`\n` +
-            `${ICONS.clock} **Uptime**: \` ${uptime} \`\n`
+            `${ICONS.clock} **Uptime**: \` ${uptime} \`\n` +
+            `${ICONS.ram} **Memory Usage**: \` ${memoryUsage} MB \`\n`
         )
         .setFooter({
             iconURL: LINKS.brand,

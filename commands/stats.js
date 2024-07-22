@@ -49,7 +49,10 @@ module.exports = {
                 uptimeFormatted += `${uptimeSeconds.toFixed(0)}s`;
             }
 
-            const botInfoEmbed = StatsEmbed(serversCount, shardsCount, uptimeFormatted);
+            const memoryUsage = process.memoryUsage();
+            const ramUsageMB = (memoryUsage.rss / (1024 * 1024)).toFixed(0);
+
+            const botInfoEmbed = StatsEmbed(serversCount, shardsCount, uptimeFormatted, ramUsageMB);
             await interaction.editReply({ embeds: [botInfoEmbed], ephemeral: true });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);

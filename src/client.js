@@ -30,7 +30,7 @@ const channels = [
     'atuesports',
     'bunkroger',
     'cowboyblaze',
-    'ladyelaine_1',
+    'theladyelaine',
     'maiotheone',
     'drifloom_',
     'tkrak3n',

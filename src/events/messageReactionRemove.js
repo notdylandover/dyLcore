@@ -19,7 +19,7 @@ module.exports = {
             const channelName = reaction.message.channel.name;
             const messageAuthor = reaction.message.author.username || 'Unknown user';
             const authorAvatar = reaction.message.author.displayAvatarURL();
-            const messageContent = reaction.message.content;
+            const messageContent = reaction.message.content.replace(/[\r\n]+/g, " ");
             const emojiName = reaction.emoji.name;
             const messageLink = reaction.message.url;
 

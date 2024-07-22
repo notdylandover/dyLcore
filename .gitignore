@@ -5,7 +5,6 @@ run.bat
 /node_modules
 /temp
 /data
-/api
 /pages
 
 /utils/server.js

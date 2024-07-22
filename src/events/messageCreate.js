@@ -1,5 +1,5 @@
 const { attachmentDownload, messageCreate, Error, Debug } = require("../../utils/logging");
-const { LiveHelpTitle, LiveHelpStep1, LiveHelpStep2, LiveHelpStep3, EmbedTest } = require("../../utils/embeds");
+const { LiveHelpTitle, LiveHelpStep1, LiveHelpStep2, LiveHelpStep3, EmbedTest, OutageEmbed } = require("../../utils/embeds");
 
 const fs = require("fs");
 const path = require("path");
@@ -45,42 +45,67 @@ module.exports = {
 
             try {
                 if (message.author.id === allowedUserId) {
-                    if (messageContent === 'dc.restart') {
-                        await message.delete();
-                        await message.client.destroy();
-                        return process.exit(0);
-                    }
+                    try {
+                        if (messageContent.startsWith('dc.restart')) {
+                            await message.delete();
+                            await message.client.destroy();
+                            return process.exit(0);
+                        }
 
-                    else if (messageContent === 'dc.livehelp') {
-                        await message.delete();
-                        const channel = message.channel;
+                        else if (messageContent.startsWith('dc.livehelp')) {
+                            await message.delete();
+                            const channel = message.channel;
 
-                        const title = LiveHelpTitle();
-                        const step1 = LiveHelpStep1();
-                        const step2 = LiveHelpStep2();
-                        const step3 = LiveHelpStep3();
+                            const title = LiveHelpTitle();
+                            const step1 = LiveHelpStep1();
+                            const step2 = LiveHelpStep2();
+                            const step3 = LiveHelpStep3();
 
-                        return await channel.send({ embeds: [title, step1, step2, step3] });
-                    }
+                            return await channel.send({ embeds: [title, step1, step2, step3] });
+                        }
 
-                    else if (messageContent === 'dc.embedtest') {
-                        await message.delete();
-                        const channel = message.channel;
+                        else if (messageContent.startsWith('dc.embedtest')) {
+                            await message.delete();
+                            const channel = message.channel;
+                            
+                            const quoteResponse = await fetch('https://inspirobot.me/api?generate=true');
+                            if (!quoteResponse.ok) throw new Error('Failed to fetch quote');
+
+                            const quoteImageUrl = await quoteResponse.text();
+
+                            const embed = EmbedTest(quoteImageUrl);
+
+                            return await channel.send({ content: 'This is a test embed', embeds: [embed] });
+                        }
                         
-                        const quoteResponse = await fetch('https://inspirobot.me/api?generate=true');
-                        if (!quoteResponse.ok) throw new Error('Failed to fetch quote');
+                        else if (messageContent === 'dc.clearconsole') {
+                            await message.delete();
 
-                        const quoteImageUrl = await quoteResponse.text();
+                            console.clear();
 
-                        const embed = EmbedTest(quoteImageUrl);
+                            return Debug(message.author.username + ' cleared console');
+                        }
 
-                        return await channel.send({ content: 'This is a test embed', embeds: [embed] });
-                    }
-                    
-                    else if (messageContent === 'dc.clearconsole') {
-                        await message.delete();
-                        console.clear();
-                        return Debug(message.author.username + ' cleared console');
+                        else if (messageContent.startsWith('dc.outage')) {
+                            await message.delete();
+
+                            const authorAvatar = message.author.displayAvatarURL();
+                        
+                            const timestamp = Math.floor(Date.now() / 1000);
+
+                            let description = messageContent.replace('dc.outage', '').trim();
+
+                            if (!description) {
+                                description = 'No description provided.';
+                            }
+                        
+                            const embed = OutageEmbed(authorAvatar, timestamp, description);
+                        
+                            return await message.channel.send({ embeds: [embed] });
+                        }
+                        
+                    } catch (error) {
+                        Error(`Error executing owner command:\n${error.stack}`);
                     }
                 }
             } catch (error) {

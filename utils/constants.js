@@ -45,8 +45,7 @@ module.exports.DEVICE = Object.freeze({
 
 module.exports.LINKS = Object.freeze({
     server:     'https://discord.gg/36tkJQPkT9',
-    brand:      'https://cdn.discordapp.com/emojis/1248897159433158727.png?size=4096',
-    avatar:     'https://cdn.discordapp.com/avatars/1141116585742966794/a_b277a9052e72d5c2c015e9823f352f01.gif?size=256'
+    brand:      'https://cdn.discordapp.com/avatars/1187423057531379784/a4eddaf7ab277e6b5eedbd4b25d244dc.webp?size=80'
 });
 
 module.exports.BADGES = Object.freeze({
@@ -128,6 +127,7 @@ module.exports.ICONS = Object.freeze({
     chain:                  '<:ico_chain:1257005300700020756>',
     twitch:                 '<:ico_twitch:1257005897209745590>',
     down:                   '<:ico_down:1257006430746316883>',
+    ram:                    '<:ico_ram:1263274286194491432>'
 });
 
 module.exports.TWITCHTEST = Object.freeze({
@@ -144,6 +144,7 @@ module.exports.COLORS = Object.freeze({
     ready: '#00cc00',
     test: '#ffffff',
     twitch: '#9146FF',
+    outage: '#cb2b31',
 });
 
 module.exports.REXTESTERLANGUAGES = Object.freeze({
