@@ -1,5 +1,7 @@
 const { Error, Feedback, interactionCreate } = require('../../utils/logging');
 const { ErrorEmbed, SuccessEmbed } = require('../../utils/embeds');
+const { sendEmail } = require('../../utils/sendEmail');
+
 const path = require('path');
 
 module.exports = {
@@ -11,20 +13,24 @@ module.exports = {
             const channel = isDM ? 'DM' : interaction.channel ? interaction.channel.name : 'Unknown';
             const username = interaction.user.username;
 
-            if (interaction.isCommand()) {
+            if (interaction.isChatInputCommand()) {
                 const commandName = interaction.commandName;
                 const commandContent = interaction.options
                     ? interaction.options.data.map(option => `${option.name}: ${option.value}`).join(', ')
                     : '';
-                const commandFilePath = path.join(__dirname, '..', '..', 'commands', `${commandName}.js`);
+                const commandFilePath = path.join(__dirname, '..', '..', 'commands', 'slash', `${commandName}.js`);
 
                 try {
                     const command = require(commandFilePath);
-                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${commandName.magenta} ${commandContent.magenta}`);
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - /${commandName.magenta} ${commandContent.magenta}`);
                     await command.execute(interaction);
-                } catch (e) {
-                    Error(`Error executing /${commandName}: ${e.message}`);
-                    const errorEmbed = ErrorEmbed(`Error executing ${commandName}`, e.message);
+                } catch (error) {
+                    Error(`Error executing slash command ${commandName}:\n${error.stack}`);
+                    
+                    sendEmail(commandName, error.stack);
+
+                    const errorEmbed = ErrorEmbed(`Error executing slash command ${commandName}`, error.message);
+
                     if (interaction.deferred || interaction.replied) {
                         await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
                     } else {
@@ -33,44 +39,29 @@ module.exports = {
                 }
             } else if (interaction.isContextMenuCommand()) {
                 const commandName = interaction.commandName;
-                const commandFilePath = path.join(__dirname, '..', '..', 'commands', `${commandName}.js`);
+                const commandFilePath = path.join(__dirname, '..', '..', 'commands', 'context', `${commandName}.js`);
 
                 try {
                     const command = require(commandFilePath);
-                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - Context Menu: ${commandName}`);
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${commandName.magenta}`);
                     await command.execute(interaction);
-                } catch (e) {
-                    Error(`Error executing context menu command ${commandName}: ${e.message}`);
-                    const errorEmbed = ErrorEmbed(`Error executing context menu command ${commandName}`, e.message);
+                } catch (error) {
+                    Error(`Error executing context menu command ${commandName}:\n${error.stack}`);
+                    
+                    sendEmail(commandName, error.stack);
+
+                    const errorEmbed = ErrorEmbed(`Error executing context menu command ${commandName}`, error.message);
+
                     if (interaction.deferred || interaction.replied) {
                         await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
                     } else {
                         await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
                 }
-            } else if (interaction.isModalSubmit()) {
-                if (interaction.customId === 'feedbackModal') {
-                    const feedback = interaction.fields.getTextInputValue('feedbackInput');
-                    
-                    try {
-                        Feedback(username, feedback);
-
-                        const successEmbed = SuccessEmbed('Feedback submitted successfully', 'Thank you for your feedback!');
-                        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-                    } catch (error) {
-                        const errorEmbed = ErrorEmbed('Error handling feedback', error);
-                        Error(`Error handling feedback: ${error.message}`);
-
-                        if (interaction.deferred || interaction.replied) {
-                            await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
-                        } else {
-                            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-                        }
-                    }
-                }
             }
         } catch (error) {
-            Error(`Error executing ${module.exports.name}: ${error.message}`);
+            Error(`Error executing ${module.exports.name}: ${error.stack}`);
+            sendEmail(module.exports.name, error.stack);
 
             const errorEmbed = ErrorEmbed('Error executing interactionCreate', error.message);
 

@@ -1,4 +1,6 @@
 const { messageDelete, Error } = require('../../utils/logging');
+const { messageDeleteLog } = require('../../utils/eventLogging');
+const { sendEmail } = require('../../utils/sendEmail');
 
 const fs = require('fs');
 const path = require('path');
@@ -32,6 +34,7 @@ module.exports = {
                 }
 
                 messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);
+                messageDeleteLog(message);
 
                 const serverId = message.guild.id;
                 const starboardMessagesPath = path.join(__dirname, '..', '..', 'data', serverId, 'starboard_messages.json');
@@ -51,7 +54,8 @@ module.exports = {
                 }
             }
         } catch (error) {
-            Error(`Error executing ${module.exports.name}: ${error.message}`);
+            Error(`Error executing ${module.exports.name}:\n${error.stack}`);
+            sendEmail(module.exports.name, error.stack);
         }
     }
 };

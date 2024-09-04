@@ -19,9 +19,10 @@ module.exports = {
             const channelName = reaction.message.channel.name;
             const messageAuthor = reaction.message.author.username || 'Unknown user';
             const authorAvatar = reaction.message.author.displayAvatarURL();
-            const messageContent = reaction.message.content.replace(/[\r\n]+/g, " ");
             const emojiName = reaction.emoji.name;
             const messageLink = reaction.message.url;
+            
+            let messageContent = reaction.message.content.replace(/[\r\n]+/g, " ");
 
             if (reaction.message.embeds.length > 0) {
                 messageContent += ' EMBED '.bgYellow.black;
@@ -80,7 +81,7 @@ module.exports = {
                 }
             }
 
-            messageReactionAdd(`${guildName.cyan} - ${('#' + channelName).cyan} - ${username.cyan} - ${(`Reacted to ${(messageAuthor + `'s`).cyan}`).green}` + (` message `).green + messageContent.cyan + (` with `).cyan + emojiName.cyan);
+            messageReactionAdd(`${guildName.cyan} - ${('#' + channelName).cyan} - ${username.cyan} - ${(`Reacted to ${(messageAuthor + `'s`).cyan}`).green}` + (` message `).green + messageContent.cyan + (` with `).green + emojiName.cyan);
         } catch (error) {
             Error(`Error executing ${module.exports.name}: ${error.message}`);
         }

@@ -1,39 +1,40 @@
 {
     "dependencies": {
         "@discordjs/voice": "^0.17.0",
+        "@distube/ytdl-core": "^4.14.4",
         "@types/axios": "^0.14.0",
         "@types/express": "^4.17.21",
-        "@types/node": "^20.14.10",
-        "axios": "^1.7.2",
+        "@types/node": "^22.5.3",
+        "axios": "^1.7.7",
         "canvas": "^2.11.2",
         "color-name": "^2.0.0",
-        "color-name-list": "^10.24.0",
+        "color-name-list": "^10.25.1",
         "colors": "^1.4.0",
         "crypto-js": "^4.2.0",
-        "discord.js": "^14.15.3",
+        "discord.js": "^14.16.1",
         "dotenv": "^16.4.5",
         "ejs": "^3.1.10",
         "express": "^4.19.2",
         "express-session": "^1.18.0",
-        "file-type": "^19.1.1",
-        "libsodium-wrappers": "^0.7.14",
+        "file-type": "^19.4.1",
+        "libsodium-wrappers": "^0.7.15",
         "node-cron": "^3.0.3",
-        "puppeteer": "^22.13.0",
-        "qrcode": "^1.5.3",
+        "nodemailer": "^6.9.15",
+        "puppeteer": "^23.2.2",
+        "qrcode": "^1.5.4",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-        "sharp": "^0.33.4",
+        "sharp": "^0.33.5",
         "sqlite3": "^5.1.7",
         "ts-node": "^10.9.2",
-        "typescript": "^5.5.3",
-        "youtube-dl-exec": "^3.0.6",
-        "ytdl-core": "^4.11.5"
+        "typescript": "^5.5.4",
+        "youtube-dl-exec": "^3.0.7"
     },
     "scripts": {
         "update": "node utils/update.js",
         "start": "ts-node src/server.ts"
     },
     "devDependencies": {
-        "npm-check-updates": "^16.14.20"
+        "npm-check-updates": "^17.1.1"
     }
 }

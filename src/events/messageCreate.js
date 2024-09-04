@@ -1,5 +1,5 @@
-const { attachmentDownload, messageCreate, Error, Debug } = require("../../utils/logging");
-const { LiveHelpTitle, LiveHelpStep1, LiveHelpStep2, LiveHelpStep3, EmbedTest, OutageEmbed } = require("../../utils/embeds");
+const { attachmentDownload, messageCreate, Error, interactionCreate } = require("../../utils/logging");
+const { sendEmail } = require('../../utils/sendEmail');
 
 const fs = require("fs");
 const path = require("path");
@@ -7,9 +7,26 @@ const path = require("path");
 async function downloadAttachment(url, filename) {
     const fetch = await import('node-fetch').then(mod => mod.default);
     const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+    }
     const arrayBuffer = await response.arrayBuffer();
     fs.writeFileSync(filename, Buffer.from(arrayBuffer));
 }
+
+function loadCommands(dir) {
+    const commands = new Map();
+    const commandFiles = fs.readdirSync(dir).filter(file => file.endsWith('.js'));
+
+    for (const file of commandFiles) {
+        const command = require(path.join(dir, file));
+        commands.set(command.name, command);
+    }
+
+    return commands;
+}
+
+const messageCommands = loadCommands(path.join(__dirname, '..', '..', 'commands', 'message'));
 
 module.exports = {
     name: "messageCreate",
@@ -19,93 +36,25 @@ module.exports = {
             const channelName = message.channel && message.channel.name ? message.channel.name : "Direct Message";
 
             const allowedUserId = process.env.OWNERID;
+            const commandPrefix = process.env.PREFIX;
 
-            let authorFlags;
-            try {
-                if (message.author) {
-                    authorFlags = await message.author.fetchFlags();
-                }
-            } catch (error) {
-                Error(`Error fetching author flags:\n${error.stack}`);
-            }
-
-            let authorUsername = "Unknown User";
-
-            try {
-                if (message.webhookID) {
-                    authorUsername = message.author.username;
-                } else if (message.author) {
-                    authorUsername = message.author.username;
-                }
-            } catch (error) {
-                Error(`Error determining author username:\n${error.stack}`);
-            }
+            let authorFlags = message.author?.flags;
+            let authorUsername = message.author ? message.author.username : "Unknown User";
 
             let messageContent = message.content.replace(/[\r\n]+/g, " ");
 
             try {
-                if (message.author.id === allowedUserId) {
-                    try {
-                        if (messageContent.startsWith('dc.restart')) {
-                            await message.delete();
-                            await message.client.destroy();
-                            return process.exit(0);
+                if (message.author && message.author.id === allowedUserId) {
+                    if (messageContent.startsWith(commandPrefix)) {
+                        const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
+                        const command = messageCommands.get(commandName);
+                        interactionCreate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent.magenta}`);
+
+                        if (command) {
+                            return await command.execute(message);
+                        } else {
+                            message.react('❔');
                         }
-
-                        else if (messageContent.startsWith('dc.livehelp')) {
-                            await message.delete();
-                            const channel = message.channel;
-
-                            const title = LiveHelpTitle();
-                            const step1 = LiveHelpStep1();
-                            const step2 = LiveHelpStep2();
-                            const step3 = LiveHelpStep3();
-
-                            return await channel.send({ embeds: [title, step1, step2, step3] });
-                        }
-
-                        else if (messageContent.startsWith('dc.embedtest')) {
-                            await message.delete();
-                            const channel = message.channel;
-                            
-                            const quoteResponse = await fetch('https://inspirobot.me/api?generate=true');
-                            if (!quoteResponse.ok) throw new Error('Failed to fetch quote');
-
-                            const quoteImageUrl = await quoteResponse.text();
-
-                            const embed = EmbedTest(quoteImageUrl);
-
-                            return await channel.send({ content: 'This is a test embed', embeds: [embed] });
-                        }
-                        
-                        else if (messageContent === 'dc.clearconsole') {
-                            await message.delete();
-
-                            console.clear();
-
-                            return Debug(message.author.username + ' cleared console');
-                        }
-
-                        else if (messageContent.startsWith('dc.outage')) {
-                            await message.delete();
-
-                            const authorAvatar = message.author.displayAvatarURL();
-                        
-                            const timestamp = Math.floor(Date.now() / 1000);
-
-                            let description = messageContent.replace('dc.outage', '').trim();
-
-                            if (!description) {
-                                description = 'No description provided.';
-                            }
-                        
-                            const embed = OutageEmbed(authorAvatar, timestamp, description);
-                        
-                            return await message.channel.send({ embeds: [embed] });
-                        }
-                        
-                    } catch (error) {
-                        Error(`Error executing owner command:\n${error.stack}`);
                     }
                 }
             } catch (error) {
@@ -125,19 +74,23 @@ module.exports = {
                 }
 
                 if (!message.inGuild()) {
-                    messageCreate(`${`DM`.magenta} - ${authorUsername.cyan} - ${messageContent.white}`);
-                    
-                    if (!message.author.bot) { 
-                        return message.reply({ content: 'Hi! In the future, this conversation will be a ticket system.', ephemeral: true });
-                    }
+                    return messageCreate(`${`DM`.magenta} - ${authorUsername.cyan} - ${messageContent.white}`);
                 }
-
+    
                 if (message.author.system) {
                     return messageCreate(`${` SYSTEM `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
                 }
-
-                if (authorFlags && authorFlags.has('VerifiedBot')) {
+    
+                if (message.author.bot && authorFlags.has('VerifiedBot')) {
                     return messageCreate(`${` ✓ APP `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
+                }
+    
+                if (message.author.bot && !authorFlags.has('VerifiedBot')) {
+                    return messageCreate(`${` APP `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
+                }
+    
+                if (message.webhookId > 0) {
+                    return messageCreate(`${` WEBHOOK `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
                 }
 
                 messageCreate(`${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
@@ -154,10 +107,12 @@ module.exports = {
 
                     for (const attachment of message.attachments.values()) {
                         const fileExtension = path.extname(attachment.name);
-                        const fileName = `${authorUsername}-${new Date().toISOString().split('T')[0]}-${path.basename(attachment.name, fileExtension)}${fileExtension}`;
+                        const sanitizedFilename = attachment.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');  // Sanitize filename
+                        const fileName = `${authorUsername}-${new Date().toISOString().split('T')[0]}-${path.basename(sanitizedFilename, fileExtension)}${fileExtension}`;
                         const filePath = path.join(mediaDirPath, fileName);
 
                         try {
+                            console.log(`Downloading attachment from ${attachment.url} to ${filePath}`);  // Log URL and path
                             await downloadAttachment(attachment.url, filePath);
                         } catch (err) {
                             Error(`Error downloading attachment: ${err.stack}`);
@@ -171,6 +126,7 @@ module.exports = {
             }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
+            sendEmail(module.exports.name, error.stack);
         }
     }
 };

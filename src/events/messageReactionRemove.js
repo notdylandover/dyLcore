@@ -19,9 +19,14 @@ module.exports = {
             const channelName = reaction.message.channel.name;
             const messageAuthor = reaction.message.author.username || 'Unknown user';
             const authorAvatar = reaction.message.author.displayAvatarURL();
-            const messageContent = reaction.message.content.replace(/[\r\n]+/g, " ");
             const emojiName = reaction.emoji.name;
             const messageLink = reaction.message.url;
+
+            let messageContent = reaction.message.content.replace(/[\r\n]+/g, " ");
+
+            if (reaction.message.embeds.length > 0) {
+                messageContent += ' EMBED '.bgYellow.black;
+            }
 
             if (emojiName === '⭐') {
                 const serverId = reaction.message.guild.id;
@@ -73,7 +78,7 @@ module.exports = {
                 }
             }
 
-            messageReactionRemove(`${guildName.cyan} - ${('#' + channelName).cyan} - ${username.cyan} - ${(`Removed their reaction to ${(messageAuthor + `'s`).cyan}`).red}` + (` message `).red + messageContent.cyan + `${(` that was ⭐`).red}`);
+            messageReactionRemove(`${guildName.cyan} - ${('#' + channelName).cyan} - ${username.cyan} - ${(`Removed their reaction to ${(messageAuthor + `'s`).cyan}`).red}` + (` message `).red + messageContent.cyan + `${(` that was ${emojiName.cyan}`).red}`);
         } catch (error) {
             Error(`Error executing ${module.exports.name}: ${error.message}`);
         }

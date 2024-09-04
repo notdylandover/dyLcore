@@ -9,7 +9,7 @@ const twitchClientID = process.env.TWITCHCLIENTID;
 const twitchSecret = process.env.TWITCHCLIENTSECRET;
 const liveConfigFilePath = './data/liveConfig.json';
 const liveRoleConfigFilePath = './data/liveRoleConfig.json';
-const twitchUsersFilePath = './data/twitchUsers.json'; // New file for Twitch user mappings
+const twitchUsersFilePath = './data/twitchUsers.json';
 
 async function getToken() {
     try {

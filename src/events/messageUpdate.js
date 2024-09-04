@@ -1,4 +1,6 @@
-const { messageUpdate, Error, Debug } = require('../../utils/logging');
+const { messageUpdate, Error } = require('../../utils/logging');
+const { messageUpdateLog } = require('../../utils/eventLogging');
+const { sendEmail } = require('../../utils/sendEmail');
 
 module.exports = {
     name: 'messageUpdate',
@@ -13,12 +15,13 @@ module.exports = {
             let oldmessageContent = oldMessage ? oldMessage.content : " ";
             let newmessageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
 
-            if (oldMessage.author.bot) {
-                return;
+            if (oldMessage.partial) {
+                return; // TODO: Figure out a way to bypass bot partial messages
+                oldmessageContent = ' PARTIAL '.bgCyan.red;
             }
 
-            if (oldMessage.partial) {
-                oldmessageContent = ' PARTIAL '.bgCyan.red;
+            if (oldMessage.author.bot) {
+                return;
             }
 
             if (oldMessage.embeds.length > 0) {
@@ -30,8 +33,10 @@ module.exports = {
             }
 
             messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${oldmessageContent} -> ${newmessageContent.green} (Updated)`);
+            messageUpdateLog(oldMessage, newMessage);
         } catch (error) {
-            Error(`Error executing ${module.exports.name} event: ${error.message}`);
+            Error(`Error executing ${module.exports.name}:\n${error.stack}`);
+            sendEmail(module.exports.name, error.stack);
         }
     }
 };

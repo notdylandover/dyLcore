@@ -109,7 +109,7 @@ module.exports.Error = function(m) {
 module.exports.CommandError = function(commandName, stack) {
     const time = new Date().toLocaleTimeString();
     console.log(`${time.red}\t${`Error executing ${commandName}: ${stack}`.red}`);
-    dbOutput('Command Error', m);
+    dbOutput('Command Error', stack);
 };
 
 module.exports.Warn = function(m) {
@@ -243,7 +243,6 @@ module.exports.guildMemberRemove = function(m) {
 
 module.exports.guildMembersChunk = function(m) {
     info(m, colors.grey);
-    dbOutput('Member Chunk', m);
 };
 
 module.exports.guildMemberUpdate = function(m) {

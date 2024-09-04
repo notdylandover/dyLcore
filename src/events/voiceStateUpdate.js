@@ -1,22 +1,58 @@
 const { voiceStateUpdate } = require('../../utils/logging');
 
 function getAction(oldState, newState) {
-    if          (!oldState.channel && newState.channel)         { return 'Joined'; }
-    else if     (oldState.channel && !newState.channel)         { return 'Left'; }
+    // Joined
+    if          (!oldState.channel && newState.channel)                                 { return 'Joined'; }                    // Green
+
+    // Left
+    else if     (oldState.channel && !newState.channel)                                 { return 'Left'; }                      // Red
     
+    // Muted
     else if     (newState.selfMute && !oldState.selfMute &&
-                !newState.selfDeaf && !oldState.selfDeaf)       { return 'Muted'; }
+                !newState.selfDeaf && !oldState.selfDeaf)                               { return 'Muted'; }                     // Red
+
+    // Unmuted
     else if     (!newState.selfMute && oldState.selfMute &&
-                !newState.selfDeaf && !oldState.selfDeaf)       { return 'Unmuted'; }
+                !newState.selfDeaf && !oldState.selfDeaf)                               { return 'Unmuted'; }                   // Green
+
+    // Deafened
+    else if     (newState.selfDeaf && !oldState.selfDeaf)                               { return 'Deafened'; }                  // Red
+
+    // Undeafened
+    else if     (!newState.selfDeaf && oldState.selfDeaf)                               { return 'Undeafened'; }                // Green
+
+    // Server Deafened
+    else if     (newState.deaf && !oldState.deaf)                                       { return 'Server Deafened'; }           // Red
+
+    // Server Undeafened
+    else if     (!newState.deaf && oldState.deaf)                                       { return 'Server Undeafened'; }         // Green
     
-    else if     (newState.selfDeaf && !oldState.selfDeaf)       { return 'Deafened'; }
-    else if     (!newState.selfDeaf && oldState.selfDeaf)       { return 'Undeafened'; }
+    // Server Muted
+    else if     (newState.mute && !oldState.mute)                                       { return 'Server Muted'; }              // Red
+
+    // Server Unmuted
+    else if     (!newState.mute && oldState.mute)                                       { return 'Server Unmuted'; }            // Green
+
+    // Camera On
+    else if     (newState.selfVideo && !oldState.selfVideo)                             { return 'Camera On'; }                 // Green
     
-    else if     (newState.selfVideo && !oldState.selfVideo)     { return 'Turned on camera'; }
-    else if     (!newState.selfVideo && oldState.selfVideo)     { return 'Turned off camera'; }
+    // Camera Off
+    else if     (!newState.selfVideo && oldState.selfVideo)                             { return 'Camera Off'; }                // Red
     
-    else if     (newState.streaming && !oldState.streaming)     { return 'Starting streaming'; }
-    else if     (!newState.streaming && oldState.streaming)     { return 'Stopped streaming'; }
+    // Started Stream
+    else if     (newState.streaming && !oldState.streaming)                             { return 'Starting Stream'; }           // Green
+    
+    // Stopped Stream
+    else if     (!newState.streaming && oldState.streaming)                             { return 'Stopped Stream'; }            // Red
+    
+    // Request to Speak
+    else if     (newState.requestToSpeakTimeStamp && !oldState.requestToSpeakTimeStamp) { return 'Requested to Speak'; }        // Cyan
+    
+    // Session ID Changed
+    else if     (newState.sessionId && !oldState.sessionId)                             { return 'Session ID Changed'; }        // Gray
+
+    // Suppressed
+    else if     (newState.suppress && !oldState.suppress)                               { return 'Suppress'; }                  // Red
     
     else        { return 'Other'; }
 }
@@ -32,43 +68,40 @@ module.exports = {
         const globalName = member.user.tag;
 
         let actionColor;
-        switch (action) {
-            case 'Joined':
-                actionColor = 'green';
-                break;
-            case 'Left':
-                actionColor = 'red';
-                break;
-            case 'Unmuted':
-                actionColor = 'green';
-                break;
-            case 'Muted':
-                actionColor = 'red';
-                break;
-            case 'Undeafened':
-                actionColor = 'green';
-                break;
-            case 'Deafened':
-                actionColor = 'red';
-                break;
-            case 'Turned on camera':
-                actionColor = 'green';
-                break;
-            case 'Turned off camera':
-                actionColor = 'red';
-                break;
-            case 'Starting streaming':
-                actionColor = 'green';
-                break;
-            case 'Stopped streaming':
-                actionColor = 'red';
-                break;
-            case 'Other':
-                actionColor = 'yellow';
-                break;
-            default:
-                actionColor = 'yellow';
-                break;
+
+        if (
+            action == 'Joined' ||
+            action == 'Unmuted' ||
+            action == 'Undeafened' ||
+            action == 'Server Undeafened' ||
+            action == 'Server Unmuted' ||
+            action == 'Camera On' ||
+            action == 'Started Stream'
+        ) {
+            actionColor = 'green';
+        }
+
+        else if (
+            action == 'Left' ||
+            action == 'Muted' ||
+            action == 'Deafened' ||
+            action == 'Server Deafened' ||
+            action == 'Server Muted' ||
+            action == 'Camera Off' ||
+            action == 'Stopped Stream' ||
+            action == 'Suppress'
+        ) {
+            actionColor = 'red';
+        }
+
+        else if (
+            action == 'Request to Speak'
+        ) {
+            actionColor = 'cyan';
+        }
+
+        else {
+            actionColor = 'gray';
         }
 
         voiceStateUpdate(`${server.cyan} - ${channel.cyan} - ${globalName.cyan} - ${action[actionColor]}`);
