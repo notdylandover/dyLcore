@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require("discord.js");
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -9,13 +9,13 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("setliverole")
         .setDescription('Set the role to give to users when they go live')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
         .addRoleOption(option => option
             .setName('role')
             .setDescription('The role to give to users when they go live')
             .setRequired(true)
-        )
-        .setDMPermission(false)
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -40,7 +40,7 @@ module.exports = {
 
             fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
 
-            const successEmbed = SuccessEmbed('Success', `Live notifications role set to ${role}`);
+            const successEmbed = SuccessEmbed(`Live notifications role set to ${role}`);
             interaction.editReply({ embeds: [successEmbed] });
 
         } catch (error) {

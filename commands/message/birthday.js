@@ -1,4 +1,4 @@
-const { Debug, CommandError } = require('../../utils/logging');
+const { CommandError } = require('../../utils/logging');
 const { ErrorEmbed } = require('../../utils/embeds');
 
 const fs = require('fs');
@@ -20,7 +20,6 @@ module.exports = {
         const birthdaysFilePath = path.join(dataPath, 'birthdays.json');
         const settingsFilePath = path.join(dataPath, `${serverId}/settings.json`);
 
-        // Ensure the data directory exists
         if (!fs.existsSync(dataPath)) {
             fs.mkdirSync(dataPath, { recursive: true });
         }
@@ -28,18 +27,15 @@ module.exports = {
         let birthdays = {};
         let settings = {};
 
-        // Read the existing birthdays from the file, if it exists
         if (fs.existsSync(birthdaysFilePath)) {
             const rawData = fs.readFileSync(birthdaysFilePath);
             birthdays = JSON.parse(rawData);
         }
 
-        // Ensure the server settings directory exists
         if (!fs.existsSync(path.join(dataPath, serverId))) {
             fs.mkdirSync(path.join(dataPath, serverId), { recursive: true });
         }
 
-        // Read the existing settings from the file, if it exists
         if (fs.existsSync(settingsFilePath)) {
             const rawData = fs.readFileSync(settingsFilePath);
             settings = JSON.parse(rawData);

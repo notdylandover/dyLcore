@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { PingEmbed, LoadingPingEmbed, ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require("../../utils/logging");
 
@@ -6,8 +6,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('ping')
         .setDescription('Get the bot\'s ping')
-        .setDMPermission(true)
-        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         const start = Date.now();
         await interaction.deferReply();

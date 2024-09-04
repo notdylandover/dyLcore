@@ -1,12 +1,7 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
 const { DiscordJS, Invalid, Error } = require('../utils/logging');
-const { applyBirthdayRoles } = require('../utils/birthday');
 
-const isLive = require('../utils/isLive');
-const setPresence = require("../utils/setPresence");
-
-const cron = require("node-cron");
 const fs = require('fs');
 const path = require('path');
 
@@ -87,14 +82,5 @@ if (missingEvents.length > 0) {
 if (invalidEvents.length > 0) {
     invalidEvents.forEach(file => Invalid(file));
 }
-
-cron.schedule('*/15 * * * *', () => {
-    applyBirthdayRoles(client);
-});
-
-cron.schedule("*/15 * * * * *", async () => {
-    setPresence(client);
-    await isLive(client, channels);
-});
 
 module.exports = client;

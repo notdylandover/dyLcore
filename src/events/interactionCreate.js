@@ -1,5 +1,5 @@
-const { Error, Feedback, interactionCreate } = require('../../utils/logging');
-const { ErrorEmbed, SuccessEmbed } = require('../../utils/embeds');
+const { Error, interactionCreate } = require('../../utils/logging');
+const { ErrorEmbed } = require('../../utils/embeds');
 const { sendEmail } = require('../../utils/sendEmail');
 
 const path = require('path');

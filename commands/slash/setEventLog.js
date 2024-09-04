@@ -1,26 +1,21 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
+
 const fs = require('fs');
 const path = require('path');
 
-const command = new SlashCommandBuilder()
-    .setName('seteventlog')
-    .setDescription('Set the channel where you want event logs')
-    .addChannelOption(option => option
-        .setName('channel')
-        .setDescription('The channel where event logs will be sent')
-        .setRequired(true)
-    )
-    .setDMPermission(false)
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName('seteventlog')
+        .setDescription('Set the channel where you want event logs')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .addChannelOption(option => option
+            .setName('channel')
+            .setDescription('The channel where event logs will be sent')
+            .setRequired(true)
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -41,7 +36,7 @@ module.exports = {
 
             fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
 
-            const successEmbed = SuccessEmbed('Event Logs Channel Set', `Event logs will be sent to <#${channel.id}>.`);
+            const successEmbed = SuccessEmbed(`Event logs will be sent to <#${channel.id}>.`);
             await interaction.editReply({ embeds: [successEmbed] });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);

@@ -1,25 +1,18 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { UserEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 const { EMOJIS } = require("../../utils/constants");
 
-const command = new SlashCommandBuilder()
-    .setName("user")
-    .setDescription("Get user details")
-    .addUserOption(option => option
-        .setName('user')
-        .setDescription('The user to view details of')
-        .setRequired(true)
-    )
-    .setDMPermission(false)
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("user")
+        .setDescription("Get user details")
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addUserOption(option => option
+            .setName('user')
+            .setDescription('The user to view details of')
+            .setRequired(true)
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 

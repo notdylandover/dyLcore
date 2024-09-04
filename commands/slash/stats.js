@@ -1,22 +1,15 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, StatsEmbed } = require('../../utils/embeds');
 const { CommandError, Error } = require('../../utils/logging');
 const { fetchCommandCount } = require('../../utils/registerCommands');
 
 const axios = require('axios');
 
-const command = new SlashCommandBuilder()
-    .setName('stats')
-    .setDescription(`Get information about dyLcore`)
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName('stats')
+        .setDescription(`Get information about dyLcore`)
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         await interaction.deferReply();
 

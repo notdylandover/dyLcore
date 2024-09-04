@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { SuccessEmbed, ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require("../../utils/logging");
 
@@ -9,6 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('starboard')
         .setDescription('Configure the starboard system for this server')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addSubcommand(subcommand => subcommand
             .setName('setchannel')
             .setDescription('Add a channel as the starboard system channel')
@@ -35,8 +37,7 @@ module.exports = {
                 .setDescription('The number of reactions required')
                 .setRequired(true)
             )
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -58,7 +59,7 @@ module.exports = {
 
                 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
-                const successEmbed = SuccessEmbed('Starboard Channel Set', `The starboard system channel has been set to <#${channel.id}>`);
+                const successEmbed = SuccessEmbed(`The starboard system channel has been set to <#${channel.id}>`);
                 await interaction.editReply({ embeds: [successEmbed] });
             } else if (subcommand === 'removechannel') {
                 if (settings.starboard_channel_id === channel.id) {
@@ -66,7 +67,7 @@ module.exports = {
 
                     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
-                    const successEmbed = SuccessEmbed('Starboard Channel Removed', `The starboard system channel <#${channel.id}> has been removed`);
+                    const successEmbed = SuccessEmbed(`The starboard system channel <#${channel.id}> has been removed`);
                     await interaction.editReply({ embeds: [successEmbed] });
                 } else {
                     const errorEmbed = ErrorEmbed('Error', `The channel <#${channel.id}> is not set as the starboard system channel.`);
@@ -85,7 +86,7 @@ module.exports = {
 
                 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
-                const successEmbed = SuccessEmbed('Starboard Reactions Requirement Set', `The required reactions to send a message to starboard has been set to ${count}`);
+                const successEmbed = SuccessEmbed(`The required reactions to send a message to starboard has been set to ${count}`);
                 await interaction.editReply({ embeds: [successEmbed] });
             }
 

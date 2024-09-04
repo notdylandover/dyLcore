@@ -1,6 +1,6 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
-const { Error, CommandError } = require("../../utils/logging");
+const { CommandError } = require("../../utils/logging");
 const { createCanvas, loadImage } = require('canvas');
 
 const path = require('path');
@@ -8,14 +8,12 @@ const fs = require('fs');
 const axios = require('axios');
 const sharp = require('sharp');
 
-const command = new ContextMenuCommandBuilder()
-    .setName("Make It A Quote")
-    .setType(ApplicationCommandType.Message)
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
 module.exports = {
-    data: command,
+    data: new ContextMenuCommandBuilder()
+        .setName("Make It A Quote")
+        .setType(ApplicationCommandType.Message)
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
     async execute(interaction) {
         await interaction.deferReply();
 

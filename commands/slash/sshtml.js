@@ -1,25 +1,19 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, FileEmbed } = require("../../utils/embeds");
-const { Error, CommandError } = require("../../utils/logging");
+const { CommandError } = require("../../utils/logging");
+
 const puppeteer = require('puppeteer');
 
-const command = new SlashCommandBuilder()
-    .setName("sshtml")
-    .setDescription("Generate a screenshot of provided HTML code")
-    .addStringOption(option => option
-        .setName('html')
-        .setDescription('The HTML code to screenshot')
-        .setRequired(true)
-    )
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("sshtml")
+        .setDescription("Generate a screenshot of provided HTML code")
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addStringOption(option => option
+            .setName('html')
+            .setDescription('The HTML code to screenshot')
+            .setRequired(true)
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 

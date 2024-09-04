@@ -1,19 +1,12 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, InspireEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
-const command = new SlashCommandBuilder()
-    .setName("inspire")
-    .setDescription('Generate an inspirational image')
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("inspire")
+        .setDescription('Generate an inspirational image')
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         await interaction.deferReply();
 

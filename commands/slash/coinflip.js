@@ -1,19 +1,12 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, CoinflipEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
-const command = new SlashCommandBuilder()
-    .setName('coinflip')
-    .setDescription('Flip a coin')
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName('coinflip')
+        .setDescription('Flip a coin')
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         await interaction.deferReply();
 

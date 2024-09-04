@@ -1,8 +1,11 @@
 const { registerCommands } = require('../../utils/registerCommands');
-const { ready, Error, Debug } = require('../../utils/logging');
-const setPresence = require('../../utils/setPresence');
+const { Error } = require('../../utils/logging');
+const { applyBirthdayRoles } = require('../../utils/birthday');
 
-const { WebSocketManager } = require('@discordjs/ws');
+const isLive = require('../../utils/isLive');
+const setPresence = require("../../utils/setPresence");
+
+const cron = require("node-cron");
 
 module.exports = {
     name: 'ready',
@@ -10,6 +13,15 @@ module.exports = {
         try {
             await registerCommands(client);
             setPresence(client);
+
+            cron.schedule('*/15 * * * *', () => {
+                applyBirthdayRoles(client);
+            });
+            
+            cron.schedule("*/15 * * * * *", async () => {
+                setPresence(client);
+                await isLive(client, channels);
+            });
         } catch (error) {
             return Error(`Error executing ${module.exports.name}: ${error.message}`);
         }

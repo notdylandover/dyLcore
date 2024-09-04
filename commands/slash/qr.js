@@ -1,10 +1,11 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
-const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
+
+const QRCode = require('qrcode');
 const colorNameList = require('color-name-list');
 
 function getColorHex(colorName) {
@@ -24,33 +25,26 @@ function getColorHex(colorName) {
     return null;
 }
 
-const command = new SlashCommandBuilder()
-    .setName("qr")
-    .setDescription('Convert a link to a QR code')
-    .addStringOption(option => option
-        .setName("link")
-        .setDescription("The link to convert to a QR code")
-        .setRequired(true)
-    )
-    .addStringOption(option => option
-        .setName("background")
-        .setDescription("The color of the background")
-        .setRequired(false)
-    )
-    .addStringOption(option => option
-        .setName("foreground")
-        .setDescription("The color of the foreground")
-        .setRequired(false)
-    )
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("qr")
+        .setDescription('Convert a link to a QR code')
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addStringOption(option => option
+            .setName("link")
+            .setDescription("The link to convert to a QR code")
+            .setRequired(true)
+        )
+        .addStringOption(option => option
+            .setName("background")
+            .setDescription("The color of the background")
+            .setRequired(false)
+        )
+        .addStringOption(option => option
+            .setName("foreground")
+            .setDescription("The color of the foreground")
+            .setRequired(false)
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 

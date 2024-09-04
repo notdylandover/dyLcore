@@ -1,4 +1,4 @@
-const { ChannelType, PermissionFlagsBits, SlashCommandBuilder } = require("discord.js");
+const { ChannelType, PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { ErrorEmbed, SuccessEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -9,14 +9,14 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("setlivechannel")
         .setDescription('Set the channel to send live notifications to')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addChannelOption(option => option
             .setName('channel')
             .setDescription('The channel to send live notifications to')
             .setRequired(true)
             .addChannelTypes(ChannelType.GuildText)
-        )
-        .setDMPermission(false)
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -42,7 +42,7 @@ module.exports = {
 
             fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
 
-            const successEmbed = SuccessEmbed('Success', `Live notifications channel set to ${channel}`);
+            const successEmbed = SuccessEmbed(`Live notifications channel set to ${channel}`);
             interaction.editReply({ embeds: [successEmbed] });
 
         } catch (error) {

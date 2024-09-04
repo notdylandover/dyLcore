@@ -1,7 +1,8 @@
 const { EmbedBuilder } = require('discord.js');
 const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
-const { COINS, COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
+const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
+const { Debug } = require('./logging');
 
 module.exports.messageDelete = function(message) {
     return embed = new EmbedBuilder()
@@ -256,43 +257,49 @@ module.exports.LiveEmbed = function(streamInfo) {
         })
 };
 
-module.exports.UserEmbed = function(userTag, userId, highestRole, highestRolePermissions, badges, createdTimestamp, joinedTimestamp, avatarURL, bannerURL) {
-    try {
-        return embed = new EmbedBuilder()
-            .setColor(COLORS.default)
-            .setDescription(
-                `${EMOJIS.ico_user} **@${userTag}**\n\` ${userId} \`\n`
-            )
-            .addFields({
-                name: `${EMOJIS.ico_calendar} **Dates**`,
-                value: `**Joined Discord**: ${createdTimestamp}\n` + `**Joined server**: ${joinedTimestamp}\n`
-            })
-            .addFields(
-                {
-                    name: `${EMOJIS.ico_users} **Highest Role**`,
-                    value: `\` ${highestRole} \``,
-                    inline: true
-                },
-                {
-                    name: `${EMOJIS.ico_users} **Badges**`,
-                    value: badges,
-                    inline: true
-                },
-            )
-            .addFields({
-                name: `${EMOJIS.ico_user} **Role Permissions**`,
-                value: highestRolePermissions,
-                inline: false
-            })
-            .setThumbnail(avatarURL)
-            .setImage(bannerURL)
-            .setFooter({
-                iconURL: LINKS.brand,
-                text: TEXT.brand
-            })
-    } catch (error) {
-        return console.log(error.stack);
+module.exports.UserEmbed = function(userTag, userId, highestRole, highestRolePermissions, badges, createdTimestamp, joinedTimestamp, avatarURL, bannerURL, avatarDecorationURL) {
+    const embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setDescription(
+            `${EMOJIS.ico_user} **@${userTag}**\n\` ${userId} \`\n`
+        )
+        .addFields({
+            name: `${EMOJIS.ico_calendar} **Dates**`,
+            value: `**Joined Discord**: ${createdTimestamp}\n**Joined server**: ${joinedTimestamp}\n`
+        })
+        .addFields(
+            {
+                name: `${EMOJIS.ico_users} **Highest Role**`,
+                value: `\` ${highestRole} \``,
+                inline: true
+            },
+            {
+                name: `${EMOJIS.ico_users} **Badges**`,
+                value: badges,
+                inline: true
+            }
+        )
+        .addFields({
+            name: `${EMOJIS.ico_user} **Role Permissions**`,
+            value: highestRolePermissions,
+            inline: false
+        })
+        .setThumbnail(avatarURL)
+        .setImage(bannerURL)
+        .setFooter({
+            iconURL: LINKS.brand,
+            text: TEXT.brand
+        });
+
+    if (avatarDecorationURL) {
+        embed.addFields({
+            name: `\t`,
+            value: `${EMOJIS.ico_media} [\` Avatar Decoration \`](${avatarDecorationURL})`,
+            inline: false
+        });
     }
+
+    return embed;
 };
 
 module.exports.ServerEmbed = function(guildName, guildId, roles, userCount, emojiCount, stickerCount, guildDescription, guildIcon, guildBanner, guildOwner, formattedGuildCreatedAt, features, channels) {
@@ -385,9 +392,9 @@ module.exports.CoinflipEmbed = function(result) {
     let emoji;
 
     if (result === 'Heads') {
-        emoji = COINS.heads;
+        emoji = EMOJIS.coin_heads;
     } else if (result === 'Tails') {
-        emoji = COINS.tails;
+        emoji = EMOJIS.coin_tails;
     }
 
     return embed = new EmbedBuilder()
@@ -458,10 +465,10 @@ module.exports.LoadingEmbed = function(title, message) {
         .setDescription(`${EMOJIS.ico_loading} **${title}**\n` + message)
 };
 
-module.exports.SuccessEmbed = function(title, message) {
+module.exports.SuccessEmbed = function(title) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.done)
-        .setDescription(`${EMOJIS.ico_checkmark} **${title}**\n` + `${message}`)
+        .setDescription(`${EMOJIS.ico_checkmark} **${title}**\n`)
 };
 
 module.exports.InfoEmbed = function(info) {

@@ -1,20 +1,13 @@
-const { ChannelType, GuildFeature, PermissionFlagsBits, SlashCommandBuilder } = require("discord.js");
+const { ChannelType, GuildFeature, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { ServerEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
-const { BADGES, FEATURES, AICONS } = require("../../utils/constants");
-
-const command = new SlashCommandBuilder()
-    .setName("server")
-    .setDescription('Get information about the server')
-    .setDMPermission(false)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
+const { BADGES, EMOJIS } = require("../../utils/constants");
 
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("server")
+        .setDescription('Get information about the server')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         await interaction.deferReply();
 
@@ -70,25 +63,25 @@ module.exports = {
 
             guild.features.forEach(feature => {
                 if (feature === GuildFeature.AnimatedIcon) {
-                    features += `${AICONS.brand} \` Animated Icon \`\n`;
+                    features += `${EMOJIS.ico_media} \` Animated Icon \`\n`;
                 }
                 if (feature === GuildFeature.AnimatedBanner) {
-                    features += `${AICONS.brand} \` Animated Banner \`\n`;
+                    features += `${EMOJIS.ico_media} \` Animated Banner \`\n`;
                 }
                 if (feature === GuildFeature.AutoModeration) {
-                    features += `${FEATURES.automod} \` AutoMod \`\n`;
+                    features += `${EMOJIS.automod} \` AutoMod \`\n`;
                 }
                 if (feature === GuildFeature.Community) {
-                    features += `${FEATURES.community} \` Community \`\n`;
+                    features += `${EMOJIS.Community} \` Community \`\n`;
                 }
                 if (feature === GuildFeature.DeveloperSupportServer) {
                     features += `${BADGES.active_developer} \` Developer Support Server \`\n`;
                 }
                 if (feature === GuildFeature.Partnered) {
-                    features += `${FEATURES.Partnered} \` Partnered \`\n`;
+                    features += `${EMOJIS.Partnered} \` Partnered \`\n`;
                 }
                 if (feature === GuildFeature.Verified) {
-                    features += `${FEATURES.Verified} \` Verified \`\n`;
+                    features += `${EMOJIS.Partnered} \` Verified \`\n`;
                 }
             });
 

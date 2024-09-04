@@ -1,4 +1,4 @@
-const { Debug, CommandError } = require('../../utils/logging');
+const { CommandError } = require('../../utils/logging');
 
 module.exports = {
     name: 'me',

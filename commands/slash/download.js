@@ -1,7 +1,8 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, FileEmbed } = require("../../utils/embeds");
 const { Debug, Error, CommandError } = require("../../utils/logging");
 const { spawn } = require('child_process');
+
 const ytdl = require('@distube/ytdl-core');
 const fs = require('fs');
 const path = require('path');
@@ -9,32 +10,25 @@ const path = require('path');
 const MAX_FILE_SIZE_MB = 25;
 const MAX_DURATION_SECONDS = 600;
 
-const command = new SlashCommandBuilder()
-    .setName("download")
-    .setDescription('Download the video or audio from YouTube')
-    .addStringOption(option => option
-        .setName("link")
-        .setDescription("The link to download")
-        .setRequired(true)
-    )
-    .addStringOption(option => option
-        .setName("format")
-        .setDescription("The format to download as")
-        .setRequired(true)
-        .addChoices(
-            { name: "MP3", value: "mp3" },
-            { name: "MP4", value: "mp4" }
-        )
-    )
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName("download")
+        .setDescription('Download the video or audio from YouTube')
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addStringOption(option => option
+            .setName("link")
+            .setDescription("The link to download")
+            .setRequired(true)
+        )
+        .addStringOption(option => option
+            .setName("format")
+            .setDescription("The format to download as")
+            .setRequired(true)
+            .addChoices(
+                { name: "MP3", value: "mp3" },
+                { name: "MP4", value: "mp4" }
+            )
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 

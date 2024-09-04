@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, PolicyEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -6,8 +6,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("privacypolicy")
         .setDescription('Get the bot\'s privacy policy')
-        .setDMPermission(true)
-        .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         await interaction.deferReply();
 

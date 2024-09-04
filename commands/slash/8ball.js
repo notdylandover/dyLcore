@@ -1,25 +1,18 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { ErrorEmbed, BallEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 const { EIGHTBALL } = require('../../utils/constants');
 
-const command = new SlashCommandBuilder()
-    .setName('8ball')
-    .setDescription('Ask the 8ball a question')
-    .addStringOption(option => option
-        .setName('question')
-        .setDescription('The question you want to ask the 8ball')
-        .setRequired(false)
-    )
-    .setDMPermission(true)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
-
-command.integration_types = [
-    1
-];
-
 module.exports = {
-    data: command,
+    data: new SlashCommandBuilder()
+        .setName('8ball')
+        .setDescription('Ask the 8ball a question')
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addStringOption(option => option
+            .setName('question')
+            .setDescription('The question you want to ask the 8ball')
+            .setRequired(false)
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
