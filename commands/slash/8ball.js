@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, BallEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 const { EIGHTBALL } = require('../../utils/constants');
@@ -8,6 +8,7 @@ module.exports = {
         .setName('8ball')
         .setDescription('Ask the 8ball a question')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName('question')
             .setDescription('The question you want to ask the 8ball')

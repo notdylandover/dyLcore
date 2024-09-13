@@ -23,20 +23,6 @@ const verifiedEvents = [];
 const missingEvents = [];
 const invalidEvents = [];
 
-const channels = [
-    'atuesports',
-    'bunkroger',
-    'cowboyblaze',
-    'theladyelaine',
-    'maiotheone',
-    'drifloom_',
-    'tkrak3n',
-    'crumbdumbster',
-    'not_dyln',
-    'nerdyc160',
-    'wotuh'
-];
-
 for (const file of eventFiles) {
     try {
         const event = require(`./events/${file}`);

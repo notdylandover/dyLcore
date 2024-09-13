@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, CodeEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
@@ -9,6 +9,7 @@ module.exports = {
         .setName("exec")
         .setDescription('Execute provided code')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName('code')
             .setDescription('Code to compile')

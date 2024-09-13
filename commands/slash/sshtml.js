@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, FileEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -9,6 +9,7 @@ module.exports = {
         .setName("sshtml")
         .setDescription("Generate a screenshot of provided HTML code")
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName('html')
             .setDescription('The HTML code to screenshot')

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, FileEmbed } = require("../../utils/embeds");
 const { Debug, Error, CommandError } = require("../../utils/logging");
 const { spawn } = require('child_process');
@@ -15,6 +15,7 @@ module.exports = {
         .setName("download")
         .setDescription('Download the video or audio from YouTube')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName("link")
             .setDescription("The link to download")

@@ -7,6 +7,20 @@ const setPresence = require("../../utils/setPresence");
 
 const cron = require("node-cron");
 
+const channels = [
+    'atuesports',
+    'bunkroger',
+    'cowboyblaze',
+    'theladyelaine',
+    'maio_streams',
+    'drifloom_',
+    'tkrak3n',
+    'crumbdumbster',
+    'not_dyLn',
+    'nerdyc160',
+    'wotuh'
+];
+
 module.exports = {
     name: 'ready',
     async execute(client) {

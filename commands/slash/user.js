@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { UserEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 const { EMOJIS } = require("../../utils/constants");
@@ -8,6 +8,7 @@ module.exports = {
         .setName("user")
         .setDescription("Get user details")
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addUserOption(option => option
             .setName('user')
             .setDescription('The user to view details of')

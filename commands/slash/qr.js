@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
@@ -30,6 +30,7 @@ module.exports = {
         .setName("qr")
         .setDescription('Convert a link to a QR code')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName("link")
             .setDescription("The link to convert to a QR code")

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
@@ -10,6 +10,7 @@ module.exports = {
         .setName('birthday')
         .setDescription('Manage birthdays')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .addSubcommand(subcommand => subcommand
             .setName('set')
             .setDescription('Set your birthday')

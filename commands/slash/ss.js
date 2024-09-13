@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, FileEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require('../../utils/logging');
 
@@ -9,6 +9,7 @@ module.exports = {
         .setName('ss')
         .setDescription('Take a screenshot of a webpage')
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .addStringOption(option => option
             .setName('url')
             .setDescription('The URL of the webpage')

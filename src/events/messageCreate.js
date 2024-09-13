@@ -98,8 +98,8 @@ module.exports = {
                 Error(`Error processing message content:\n${error.stack}`);
             }
 
-            try {
-                if (message.attachments.size > 0) {
+            if (message.attachments.size > 0) {
+                try {
                     const mediaDirPath = path.join(__dirname, "..", "..", "data", "media");
                     if (!fs.existsSync(mediaDirPath)) {
                         fs.mkdirSync(mediaDirPath, { recursive: true });
@@ -107,22 +107,20 @@ module.exports = {
 
                     for (const attachment of message.attachments.values()) {
                         const fileExtension = path.extname(attachment.name);
-                        const sanitizedFilename = attachment.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');  // Sanitize filename
-                        const fileName = `${authorUsername}-${new Date().toISOString().split('T')[0]}-${path.basename(sanitizedFilename, fileExtension)}${fileExtension}`;
+                        const sanitizedFilename = attachment.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                        const fileName = `${message.author.username}-${new Date().toISOString().split('T')[0]}-${path.basename(sanitizedFilename, fileExtension)}${fileExtension}`;
                         const filePath = path.join(mediaDirPath, fileName);
 
                         try {
-                            console.log(`Downloading attachment from ${attachment.url} to ${filePath}`);  // Log URL and path
+                            attachmentDownload(`Downloading attachment to ${filePath}`);
                             await downloadAttachment(attachment.url, filePath);
                         } catch (err) {
-                            Error(`Error downloading attachment: ${err.stack}`);
-                        } finally {
-                            attachmentDownload(`Attachment Downloaded to ${filePath}`);
+                            Error(`Error processing attachment: ${err.stack}`);
                         }
                     }
+                } catch (error) {
+                    Error(`Error processing attachments:\n${error.stack}`);
                 }
-            } catch (error) {
-                Error(`Error processing attachments:\n${error.stack}`);
             }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);

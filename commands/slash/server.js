@@ -1,4 +1,4 @@
-const { ChannelType, GuildFeature, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const { ChannelType, GuildFeature, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require("discord.js");
 const { ServerEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 const { BADGES, EMOJIS } = require("../../utils/constants");
@@ -7,7 +7,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("server")
         .setDescription('Get information about the server')
-        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel),
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall),
     async execute(interaction) {
         await interaction.deferReply();
 

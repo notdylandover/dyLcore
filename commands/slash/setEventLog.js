@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
@@ -10,6 +10,7 @@ module.exports = {
         .setName('seteventlog')
         .setDescription('Set the channel where you want event logs')
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addChannelOption(option => option
             .setName('channel')

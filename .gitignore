@@ -5,7 +5,6 @@ run.bat
 /node_modules
 /temp
 /data
-/pages
 
 /utils/server.js
 /utils/update.js

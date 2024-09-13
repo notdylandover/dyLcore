@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { SuccessEmbed, ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require("../../utils/logging");
 
@@ -10,6 +10,7 @@ module.exports = {
         .setName('starboard')
         .setDescription('Configure the starboard system for this server')
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addSubcommand(subcommand => subcommand
             .setName('setchannel')

@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 const { createCanvas, loadImage } = require('canvas');
@@ -13,6 +13,7 @@ module.exports = {
         .setName("Make It A Quote")
         .setType(ApplicationCommandType.Message)
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
     async execute(interaction) {
         await interaction.deferReply();

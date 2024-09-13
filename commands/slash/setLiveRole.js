@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 

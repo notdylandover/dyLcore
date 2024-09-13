@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, StatsEmbed } = require('../../utils/embeds');
 const { CommandError, Error } = require('../../utils/logging');
 const { fetchCommandCount } = require('../../utils/registerCommands');
@@ -9,7 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('stats')
         .setDescription(`Get information about dyLcore`)
-        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall),
     async execute(interaction) {
         await interaction.deferReply();
 

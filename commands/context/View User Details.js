@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { UserEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 const { EMOJIS } = require("../../utils/constants");
@@ -8,6 +8,7 @@ module.exports = {
         .setName("View User Details")
         .setType(ApplicationCommandType.User)
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     async execute(interaction) {
         await interaction.deferReply();

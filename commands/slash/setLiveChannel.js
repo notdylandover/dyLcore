@@ -1,4 +1,4 @@
-const { ChannelType, PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const { ChannelType, PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require("discord.js");
 const { ErrorEmbed, SuccessEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -10,6 +10,7 @@ module.exports = {
         .setName("setlivechannel")
         .setDescription('Set the channel to send live notifications to')
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addChannelOption(option => option
             .setName('channel')
