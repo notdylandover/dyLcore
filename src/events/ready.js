@@ -37,7 +37,7 @@ module.exports = {
                 await isLive(client, channels);
             });
         } catch (error) {
-            return Error(`Error executing ${module.exports.name}: ${error.message}`);
+            return Error(`Error executing ${module.exports.name}:\n${error.stack}`);
         }
     }
 };

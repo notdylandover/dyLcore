@@ -119,7 +119,7 @@ module.exports.Error = function(m) {
 
 module.exports.CommandError = function(commandName, stack) {
     const time = new Date().toLocaleTimeString();
-    console.log(`${time.red}\t${`Error executing ${commandName}: ${stack}`.red}`);
+    console.log(`${time.red}\t${`Error executing ${commandName}:\n${stack}`.red}`);
     dbOutput('Command Error', stack);
 };
 

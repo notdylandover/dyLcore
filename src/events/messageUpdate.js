@@ -1,5 +1,4 @@
 const { messageUpdate, Error } = require('../../utils/logging');
-const { sendEmail } = require('../../utils/sendEmail');
 
 module.exports = {
     name: 'messageUpdate',
@@ -11,7 +10,7 @@ module.exports = {
             let server = newMessage.guild ? newMessage.guild.name : "Direct Message";
             let channel = newMessage.channel ? newMessage.channel.name : "Direct Message";
             let globalUsername = newMessage.author.tag;
-            let oldmessageContent = oldMessage ? oldMessage.content : " ";
+            let oldmessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : " ";
             let newmessageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
 
             if (oldMessage.partial) {
@@ -34,7 +33,6 @@ module.exports = {
             messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${oldmessageContent} -> ${newmessageContent.green} (Updated)`);
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
-            sendEmail(module.exports.name, error.stack);
         }
     }
 };

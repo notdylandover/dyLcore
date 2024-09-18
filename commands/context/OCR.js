@@ -11,11 +11,12 @@ module.exports = {
         .setName('OCR')
         .setType(ApplicationCommandType.Message)
         .setContexts(InteractionContextType.BotDM)
-        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
 
     async execute(interaction) {
         await interaction.deferReply();
+
         try {
             const { default: fetch } = await import('node-fetch');
             

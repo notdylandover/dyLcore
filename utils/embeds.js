@@ -484,6 +484,12 @@ module.exports.SuccessEmbed = function(title) {
         .setDescription(`${EMOJIS.ico_checkmark} **${title}**\n`)
 };
 
+module.exports.SuccessEmbedRemodal = function(title) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.done)
+        .setDescription(title)
+};
+
 module.exports.InfoEmbed = function(info) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)

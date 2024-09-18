@@ -1,109 +1,142 @@
-const { voiceStateUpdate } = require('../../utils/logging');
+const { ChannelType } = require('discord.js');
+const { voiceStateUpdate, Error, Debug } = require('../../utils/logging');
+
+const fs = require('fs');
+const path = require('path');
 
 function getAction(oldState, newState) {
     // Joined
-    if          (!oldState.channel && newState.channel)                                 { return 'Joined'; }                    // Green
+    if (!oldState.channel && newState.channel) { return 'Joined'; }
 
     // Left
-    else if     (oldState.channel && !newState.channel)                                 { return 'Left'; }                      // Red
-    
+    else if (oldState.channel && !newState.channel) { return 'Left'; }
+
     // Muted
-    else if     (newState.selfMute && !oldState.selfMute &&
-                !newState.selfDeaf && !oldState.selfDeaf)                               { return 'Muted'; }                     // Red
+    else if (newState.selfMute && !oldState.selfMute && !newState.selfDeaf && !oldState.selfDeaf) { return 'Muted'; }
 
     // Unmuted
-    else if     (!newState.selfMute && oldState.selfMute &&
-                !newState.selfDeaf && !oldState.selfDeaf)                               { return 'Unmuted'; }                   // Green
+    else if (!newState.selfMute && oldState.selfMute && !newState.selfDeaf && !oldState.selfDeaf) { return 'Unmuted'; }
 
     // Deafened
-    else if     (newState.selfDeaf && !oldState.selfDeaf)                               { return 'Deafened'; }                  // Red
+    else if (newState.selfDeaf && !oldState.selfDeaf) { return 'Deafened'; }
 
     // Undeafened
-    else if     (!newState.selfDeaf && oldState.selfDeaf)                               { return 'Undeafened'; }                // Green
+    else if (!newState.selfDeaf && oldState.selfDeaf) { return 'Undeafened'; }
 
     // Server Deafened
-    else if     (newState.deaf && !oldState.deaf)                                       { return 'Server Deafened'; }           // Red
+    else if (newState.deaf && !oldState.deaf) { return 'Server Deafened'; }
 
     // Server Undeafened
-    else if     (!newState.deaf && oldState.deaf)                                       { return 'Server Undeafened'; }         // Green
-    
+    else if (!newState.deaf && oldState.deaf) { return 'Server Undeafened'; }
+
     // Server Muted
-    else if     (newState.mute && !oldState.mute)                                       { return 'Server Muted'; }              // Red
+    else if (newState.mute && !oldState.mute) { return 'Server Muted'; }
 
     // Server Unmuted
-    else if     (!newState.mute && oldState.mute)                                       { return 'Server Unmuted'; }            // Green
+    else if (!newState.mute && oldState.mute) { return 'Server Unmuted'; }
 
     // Camera On
-    else if     (newState.selfVideo && !oldState.selfVideo)                             { return 'Camera On'; }                 // Green
-    
+    else if (newState.selfVideo && !oldState.selfVideo) { return 'Camera On'; }
+
     // Camera Off
-    else if     (!newState.selfVideo && oldState.selfVideo)                             { return 'Camera Off'; }                // Red
-    
+    else if (!newState.selfVideo && oldState.selfVideo) { return 'Camera Off'; }
+
     // Started Stream
-    else if     (newState.streaming && !oldState.streaming)                             { return 'Starting Stream'; }           // Green
-    
+    else if (newState.streaming && !oldState.streaming) { return 'Started Stream'; }
+
     // Stopped Stream
-    else if     (!newState.streaming && oldState.streaming)                             { return 'Stopped Stream'; }            // Red
-    
+    else if (!newState.streaming && oldState.streaming) { return 'Stopped Stream'; }
+
     // Request to Speak
-    else if     (newState.requestToSpeakTimeStamp && !oldState.requestToSpeakTimeStamp) { return 'Requested to Speak'; }        // Cyan
-    
+    else if (newState.requestToSpeakTimeStamp && !oldState.requestToSpeakTimeStamp) { return 'Requested to Speak'; }
+
     // Session ID Changed
-    else if     (newState.sessionId && !oldState.sessionId)                             { return 'Session ID Changed'; }        // Gray
+    else if (newState.sessionId && !oldState.sessionId) { return 'Session ID Changed'; }
 
     // Suppressed
-    else if     (newState.suppress && !oldState.suppress)                               { return 'Suppress'; }                  // Red
-    
-    else        { return 'Other'; }
+    else if (newState.suppress && !oldState.suppress) { return 'Suppress'; }
+
+    else { return 'Other'; }
 }
 
 module.exports = {
     name: 'voiceStateUpdate',
-    execute(oldState, newState) {
-        const member = newState.member || oldState.member;
-        const action = getAction(oldState, newState);
+    async execute(oldState, newState) {
+        try {
+            const member = newState.member || oldState.member;
+            const action = getAction(oldState, newState);
 
-        const server = newState.guild ? newState.guild.name : 'Unknown Server';
-        const channel = newState.channel ? newState.channel.name : 'Unknown Channel';
-        const globalName = member.user.tag;
+            const server = newState.guild ? newState.guild.name : 'Unknown Server';
+            const channel = newState.channel ? newState.channel.name : 'Unknown Channel';
+            const globalName = member.user.tag;
 
-        let actionColor;
+            let actionColor;
 
-        if (
-            action == 'Joined' ||
-            action == 'Unmuted' ||
-            action == 'Undeafened' ||
-            action == 'Server Undeafened' ||
-            action == 'Server Unmuted' ||
-            action == 'Camera On' ||
-            action == 'Started Stream'
-        ) {
-            actionColor = 'green';
+            if (
+                action == 'Joined' ||
+                action == 'Unmuted' ||
+                action == 'Undeafened' ||
+                action == 'Server Undeafened' ||
+                action == 'Server Unmuted' ||
+                action == 'Camera On' ||
+                action == 'Started Stream'
+            ) {
+                actionColor = 'green';
+            } else if (
+                action == 'Left' ||
+                action == 'Muted' ||
+                action == 'Deafened' ||
+                action == 'Server Deafened' ||
+                action == 'Server Muted' ||
+                action == 'Camera Off' ||
+                action == 'Stopped Stream' ||
+                action == 'Suppress'
+            ) {
+                actionColor = 'red';
+            } else if (action == 'Request to Speak') {
+                actionColor = 'cyan';
+            } else {
+                actionColor = 'gray';
+            }
+
+            voiceStateUpdate(`${server.cyan} - ${channel.cyan} - ${globalName.cyan} - ${action[actionColor]}`);
+
+            const settingsFilePath = path.resolve(__dirname, `../../data/servers/${newState.guild.id}.json`);
+            if (fs.existsSync(settingsFilePath)) {
+                const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
+            
+                if (action === 'Joined' && newState.channel && newState.channel.id === settings.joinToCreateVC) {
+                    const maxBitrate = newState.guild.voiceStates.size >= 10 ? 384000 : 96000;
+            
+                    const newChannel = await newState.guild.channels.create({
+                        name: `${member.user.username}'s Room`,
+                        type: ChannelType.GuildVoice,
+                        parent: newState.channel.parent,
+                        bitrate: maxBitrate,
+                        reason: 'User joined the "Join to Create VC" channel'
+                    });
+            
+                    await member.voice.setChannel(newChannel);
+            
+                    settings.createdChannels.push(newChannel.id);
+                    fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
+                }
+            
+                if (action === 'Left' && oldState.channel) {
+                    const channelId = oldState.channel.id;
+                    if (settings.createdChannels.includes(channelId)) {
+                        if (oldState.channel.members.size === 0) {
+                            await oldState.channel.delete();
+            
+                            settings.createdChannels = settings.createdChannels.filter(id => id !== channelId);
+                            fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
+                        }
+                    }
+                }
+            }            
+            
+        } catch (error) {
+            Error(`Error executing ${module.exports.name}:\n${error.stack}`);
         }
-
-        else if (
-            action == 'Left' ||
-            action == 'Muted' ||
-            action == 'Deafened' ||
-            action == 'Server Deafened' ||
-            action == 'Server Muted' ||
-            action == 'Camera Off' ||
-            action == 'Stopped Stream' ||
-            action == 'Suppress'
-        ) {
-            actionColor = 'red';
-        }
-
-        else if (
-            action == 'Request to Speak'
-        ) {
-            actionColor = 'cyan';
-        }
-
-        else {
-            actionColor = 'gray';
-        }
-
-        voiceStateUpdate(`${server.cyan} - ${channel.cyan} - ${globalName.cyan} - ${action[actionColor]}`);
     }
 };

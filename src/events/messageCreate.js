@@ -1,5 +1,4 @@
 const { attachmentDownload, messageCreate, Error, interactionCreate } = require("../../utils/logging");
-const { sendEmail } = require('../../utils/sendEmail');
 
 const fs = require("fs");
 const path = require("path");
@@ -124,7 +123,6 @@ module.exports = {
             }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
-            sendEmail(module.exports.name, error.stack);
         }
     }
 };
