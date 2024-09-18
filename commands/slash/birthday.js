@@ -40,12 +40,11 @@ module.exports = {
         try {
             const date = interaction.options.getString('date');
             const dateRegex = /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$/;
+
+            const errorEmbed = ErrorEmbed("Invalid date format. Please use MM-DD-YYYY.");
             
             if (!dateRegex.test(date)) {
-                return await interaction.reply({
-                    embeds: [ErrorEmbed("Invalid date format. Please use MM-DD-YYYY.")],
-                    ephemeral: true
-                });
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
             birthdays[userId] = { username, birthday: date };
@@ -57,7 +56,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

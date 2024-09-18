@@ -1,5 +1,4 @@
 const { messageUpdate, Error } = require('../../utils/logging');
-const { messageUpdateLog } = require('../../utils/eventLogging');
 const { sendEmail } = require('../../utils/sendEmail');
 
 module.exports = {
@@ -33,7 +32,6 @@ module.exports = {
             }
 
             messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${oldmessageContent} -> ${newmessageContent.green} (Updated)`);
-            messageUpdateLog(oldMessage, newMessage);
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
             sendEmail(module.exports.name, error.stack);

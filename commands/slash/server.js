@@ -16,7 +16,7 @@ module.exports = {
             const guild = interaction.guild;
 
             if (!guild) {
-                const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, 'Cannot find information about this guild.');
+                const errorEmbed = ErrorEmbed('Cannot find information about this guild.');
                 Error(`Error executing ${interaction.commandName}: Cannot find information about this guild.`);
 
                 if (interaction.deferred || interaction.replied) {
@@ -117,7 +117,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

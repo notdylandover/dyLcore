@@ -72,13 +72,13 @@ module.exports = {
             const isLive = info.videoDetails.isLiveContent;
 
             if (isLive) {
-                const errorEmbed = ErrorEmbed('Error downloading link', 'YouTube live videos cannot be downloaded.');
+                const errorEmbed = ErrorEmbed('YouTube live videos cannot be downloaded.');
                 await interaction.editReply({ embeds: [errorEmbed] });
                 return;
             }
 
             if (duration > MAX_DURATION_SECONDS) {
-                const errorEmbed = ErrorEmbed('Error downloading link', `Video is too long. Maximum duration is ${MAX_DURATION_SECONDS / 60} minutes.`);
+                const errorEmbed = ErrorEmbed(`Video is too long. Maximum duration is ${MAX_DURATION_SECONDS / 60} minutes.`);
                 await interaction.editReply({ embeds: [errorEmbed] });
                 return;
             }
@@ -109,7 +109,7 @@ module.exports = {
                 if (code !== 0) {
                     Error(`FFmpeg process exited with code ${code}`);
 
-                    const errorEmbed = ErrorEmbed('Error', `FFmpeg process exited with code ${code}`);
+                    const errorEmbed = ErrorEmbed(`FFmpeg process exited with code ${code}`);
                     await interaction.editReply({ embeds: [errorEmbed] });
 
                     cleanUp([videoPath, audioPath, outputPath, mp3Path]);
@@ -118,7 +118,7 @@ module.exports = {
                     const fileSize = fs.statSync(filePath).size / (1024 * 1024);
 
                     if (fileSize > MAX_FILE_SIZE_MB) {
-                        const errorEmbed = ErrorEmbed('Error', `File size is too large. Maximum file size is ${MAX_FILE_SIZE_MB} MB.`);
+                        const errorEmbed = ErrorEmbed(`File size is too large. Maximum file size is ${MAX_FILE_SIZE_MB} MB.`);
                         await interaction.editReply({ embeds: [errorEmbed] });
 
                         cleanUp([videoPath, audioPath, outputPath, mp3Path]);
@@ -134,7 +134,7 @@ module.exports = {
 
                             return;
                         } else {
-                            const errorEmbed = ErrorEmbed('Error', 'File not found.');
+                            const errorEmbed = ErrorEmbed('File not found.');
                             await interaction.editReply({ embeds: [errorEmbed] });
                         }
                     }
@@ -143,7 +143,7 @@ module.exports = {
 
             ffmpegProcess.on('error', async (error) => {
                 Error(`FFmpeg error: ${error.message}`);
-                const errorEmbed = ErrorEmbed('Error', `FFmpeg error: ${error.message}`);
+                const errorEmbed = ErrorEmbed(`FFmpeg error: ${error.message}`);
                 await interaction.editReply({ embeds: [errorEmbed] });
                 cleanUp([videoPath, audioPath, outputPath, mp3Path]);
             });
@@ -151,7 +151,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

@@ -1,5 +1,4 @@
 const { messageDelete, Error } = require('../../utils/logging');
-const { messageDeleteLog } = require('../../utils/eventLogging');
 const { sendEmail } = require('../../utils/sendEmail');
 
 const fs = require('fs');
@@ -34,24 +33,6 @@ module.exports = {
                 }
 
                 messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);
-                messageDeleteLog(message);
-
-                const serverId = message.guild.id;
-                const starboardMessagesPath = path.join(__dirname, '..', '..', 'data', serverId, 'starboard_messages.json');
-
-                fs.mkdirSync(path.dirname(starboardMessagesPath), { recursive: true });
-
-                let starboardMessages = [];
-                if (fs.existsSync(starboardMessagesPath)) {
-                    starboardMessages = JSON.parse(fs.readFileSync(starboardMessagesPath));
-                }
-
-                const messageIndex = starboardMessages.findIndex(m => m.id === message.id);
-                if (messageIndex !== -1) {
-                    starboardMessages.splice(messageIndex, 1);
-
-                    fs.writeFileSync(starboardMessagesPath, JSON.stringify(starboardMessages, null, 2));
-                }
             }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);

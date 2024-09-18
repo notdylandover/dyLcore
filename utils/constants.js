@@ -32,11 +32,6 @@ module.exports.TEXT = Object.freeze({
     ownerid: '458854676557856790'
 });
 
-module.exports.PATHS = Object.freeze({
-    avatar: 'assets/avatar.gif',
-    banner: 'assets/banner.png'
-});
-
 module.exports.DEVICE = Object.freeze({
     mobile: 'Discord iOS',
     desktop: '@discordjs/ws 1.0.2',
@@ -46,41 +41,8 @@ module.exports.DEVICE = Object.freeze({
 module.exports.LINKS = Object.freeze({
     server:     'https://discord.gg/36tkJQPkT9',
     brand:      'https://cdn.discordapp.com/avatars/1187423057531379784/a4eddaf7ab277e6b5eedbd4b25d244dc.webp?size=4096',
-    github:     'https://github.com/notdylandover/dyLcore',
-});
-
-module.exports.BRANDICONS = Object.freeze({
-    brand:                  '<:Brand:1264435874511196200>',
-    canary:                 '<:BrandCanary:1264435839509991514>'
-});
-
-module.exports.BADGES = Object.freeze({
-    restart:                '<:restart:1253333233181917256>',
-    Nitro:                  '<:Nitro:1263671433146404944>',
-    ActiveDeveloper:        '<:ActiveDeveloper:1263671932113653831>',
-    HypesquadBrilliance:    '<:HypesquadBrilliance:1263671872034439210>',
-    HypesquadBravery:       '<:HypesquadBravery:1263671909179068547>',
-    HypesquadBalance:       '<:HypesquadBalance:1263671887909621832>',
-    DiscordStaff:           '<:DiscordStaff:1263671446413246585>',
-    VerifiedApp:            '<:VerifiedApp:1263671407175405578>',
-    HTTPInteractions:       '<:HTTPInteractions:1263671385536860242>',
-    BugHunter:              '<:BugHunter:1263671285624606833>',
-    BugHunterGold:          '<:BugHunterGold:1263671264195903541>',
-    ModeratorAlumni:        '<:ModeratorAlumni:1263671196415823973>',
-});
-
-module.exports.FEATURES = Object.freeze({
-    automod:                '<:automod:1263670752327110697>',
-    community:              '<:community:1263670680013242425>',
-    Soundboard:             '<:soundboard:1263670738083123242>',
-    AnnoucementChannel:     '<:AnnoucementChannel:1263670691383873583>',
-    ServerGuide:            '<:server_guide:1263670667765616745>',
-    partnered:              '<:Partnered:1258643389247787128>',
-    VerifiedServer:         '<:VerifiedServer:1263669254264328314>',
-});
-
-module.exports.AICONS = Object.freeze({
-    brand:                  '<a:ico_brand_animated:1258641950991585290>',
+    github:     'https://github.com/notdylandover/AutoResponse',
+    google:     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png'
 });
 
 module.exports.EMOJIS = Object.freeze({

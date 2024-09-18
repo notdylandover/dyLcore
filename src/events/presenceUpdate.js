@@ -1,4 +1,4 @@
-const { presenceUpdate, Error, Info } = require('../../utils/logging');
+const { presenceUpdate, Error } = require('../../utils/logging');
 
 const lastStatus = new Map();
 

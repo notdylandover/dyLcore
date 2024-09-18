@@ -2,7 +2,20 @@ const { EmbedBuilder } = require('discord.js');
 const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
-const { Debug } = require('./logging');
+
+module.exports.OCR = function(ocr, image) {
+    const embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setDescription(`\`\`\`\n${ocr}\n\`\`\` `)
+        .setThumbnail(image)
+        .setFooter({
+            iconURL: LINKS.google,
+            text: `${TEXT.brand} • Google Cloud Vision`
+        })
+        .setTimestamp();
+
+    return embed;
+};
 
 module.exports.messageDelete = function(message) {
     return embed = new EmbedBuilder()
@@ -481,8 +494,8 @@ module.exports.InfoEmbed = function(info) {
         })
 };
 
-module.exports.ErrorEmbed = function(title, message) {
+module.exports.ErrorEmbed = function(message) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.error)
-        .setDescription(`${EMOJIS.ico_x} **${title}**\n` + `\`\`\`\n${message}\n\`\`\``)
+        .setDescription(`\`\`\`\n${message}\n\`\`\``)
 };

@@ -96,7 +96,7 @@ module.exports = {
         } catch (error) {
             CommandError("birthday", error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing birthday`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
             return await message.reply({ embeds: [errorEmbed] });
         }
     }

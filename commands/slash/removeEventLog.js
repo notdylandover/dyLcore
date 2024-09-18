@@ -20,14 +20,14 @@ module.exports = {
             const settingsFilePath = path.join(__dirname, '..', '..', 'data', guildId, 'settings.json');
 
             if (!fs.existsSync(settingsFilePath)) {
-                const errorEmbed = ErrorEmbed('No Settings Found', 'No event log channel is currently set.');
+                const errorEmbed = ErrorEmbed('No event log channel is currently set.');
                 return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
             }
 
             let settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
 
             if (!settings.eventLogChannel) {
-                const errorEmbed = ErrorEmbed('No Event Log Channel', 'No event log channel is currently set.');
+                const errorEmbed = ErrorEmbed('No event log channel is currently set.');
                 return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
             }
 
@@ -40,7 +40,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
             await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
         }
     }

@@ -16,12 +16,12 @@ module.exports = {
         await interaction.deferReply();
 
         try {
-            const notyet = ErrorEmbed(`Error executing ${interaction.commandName}`, 'This command does not work at the moment.');
+            const notyet = ErrorEmbed('This command does not work at the moment.');
             await interaction.editReply({ embeds: [notyet], ephemeral: true });
         } catch(error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

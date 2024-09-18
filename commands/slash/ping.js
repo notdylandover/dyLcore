@@ -18,7 +18,7 @@ module.exports = {
             const wsping = interaction.client.ws.ping;
 
             if (wsping < 1) {
-                const waitEmbed = ErrorEmbed('Error retrieving ping', 'A ping hasn\'t been determined yet, Please wait a minute.');
+                const waitEmbed = ErrorEmbed('A ping hasn\'t been determined yet, Please wait a minute.');
                 await interaction.editReply({ embeds: [waitEmbed], ephemeral: true });
                 return;
             }
@@ -31,7 +31,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

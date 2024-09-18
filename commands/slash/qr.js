@@ -76,10 +76,10 @@ module.exports = {
             
             const qrCodePath = path.join(tempDir, 'qrcode.png');
 
-            QRCode.toFile(qrCodePath, link, options, async (err) => {
+            QRCode.toFile(qrCodePath, link, options, async (error) => {
                 if (err) {
-                    Error(`Error generating QR code: ${err.message}`);
-                    const errorEmbed = ErrorEmbed('Error generating QR code', err.message);
+                    Error(`Error generating QR code: ${error.message}`);
+                    const errorEmbed = ErrorEmbed(error.message);
                     await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
                     return;
                 }
@@ -91,7 +91,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            const errorEmbed = ErrorEmbed(`Error executing ${interaction.commandName}`, error.message);
+            const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
