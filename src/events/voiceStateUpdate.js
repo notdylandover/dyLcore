@@ -104,37 +104,46 @@ module.exports = {
             const settingsFilePath = path.resolve(__dirname, `../../data/servers/${newState.guild.id}.json`);
             if (fs.existsSync(settingsFilePath)) {
                 const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
-            
+
+                if (!settings.createdChannels) {
+                    settings.createdChannels = [];
+                }
+
                 if (action === 'Joined' && newState.channel && newState.channel.id === settings.joinToCreateVC) {
                     const maxBitrate = newState.guild.voiceStates.size >= 10 ? 384000 : 96000;
-            
+
                     const newChannel = await newState.guild.channels.create({
                         name: `${member.user.username}'s Room`,
                         type: ChannelType.GuildVoice,
                         parent: newState.channel.parent,
                         bitrate: maxBitrate,
-                        reason: 'User joined the "Join to Create VC" channel'
+                        reason: 'User joined the "Join to Create VC" channel',
                     });
-            
+
                     await member.voice.setChannel(newChannel);
-            
-                    settings.createdChannels.push(newChannel.id);
+
+                    settings.createdChannels.push({
+                        channelId: newChannel.id,
+                        ownerId: member.id,
+                        whitelist: [],
+                        blacklist: []
+                    });
+
                     fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
                 }
-            
+
                 if (action === 'Left' && oldState.channel) {
                     const channelId = oldState.channel.id;
-                    if (settings.createdChannels.includes(channelId)) {
-                        if (oldState.channel.members.size === 0) {
-                            await oldState.channel.delete();
-            
-                            settings.createdChannels = settings.createdChannels.filter(id => id !== channelId);
-                            fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
-                        }
+                    const channelInfo = settings.createdChannels.find(channel => channel.channelId === channelId);
+
+                    if (channelInfo && oldState.channel.members.size === 0) {
+                        await oldState.channel.delete();
+
+                        settings.createdChannels = settings.createdChannels.filter(channel => channel.channelId !== channelId);
+                        fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
                     }
                 }
-            }            
-            
+            }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
         }

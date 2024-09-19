@@ -1,7 +1,9 @@
 const { Error, interactionCreate } = require('../../utils/logging');
 const { ErrorEmbed, SuccessEmbedRemodal } = require('../../utils/embeds');
-const path = require('path');
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
     name: 'interactionCreate',
@@ -105,20 +107,27 @@ module.exports = {
                 if (customId === 'rename_channel_modal') {
                     const newChannelName = interaction.fields.getTextInputValue('new_channel_name');
                     const member = interaction.member;
+                    const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
+                    const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
+            
+                    const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
             
                     if (!member.voice.channel) {
                         const errorEmbed = ErrorEmbed('You are not in a voice channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
             
-                    const channel = member.voice.channel;
+                    if (channelInfo.ownerId !== member.id) {
+                        const errorEmbed = ErrorEmbed('You do not own this channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
             
-                    await channel.setName(newChannelName);
+                    await member.voice.channel.setName(newChannelName);
                     const successEmbed = SuccessEmbedRemodal(`Channel renamed to \` ${newChannelName} \``);
-
                     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-                } else if (customId === 'trust_user_modal') {
-                    const input = interaction.fields.getTextInputValue('trusted_user_id');
+                } else if (customId === 'trust_user_modal' || customId === 'untrust_user_modal') {
+                    const input = interaction.fields.getTextInputValue(customId === 'trust_user_modal' ? 'trusted_user_id' : 'untrusted_user_id');
+                    const action = customId === 'trust_user_modal' ? 'whitelist' : 'blacklist';
                     let user;
             
                     try {
@@ -132,32 +141,31 @@ module.exports = {
                         const errorEmbed = ErrorEmbed('User not found.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-                    
-                    const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been trusted`);
-                    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-                } else if (customId === 'untrust_user_modal') {
-                    const input = interaction.fields.getTextInputValue('untrusted_user_id');
-                    let user;
             
-                    try {
-                        user = await interaction.guild.members.fetch(input);
-                    } catch {
-                        const members = await interaction.guild.members.fetch();
-                        user = members.find(member => member.user.username === input || member.user.tag === input);
-                    }
+                    const member = interaction.member;
+                    const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
+                    const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
             
-                    if (!user) {
-                        const errorEmbed = ErrorEmbed('User not found.');
+                    const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
+            
+                    if (channelInfo.ownerId !== member.id) {
+                        const errorEmbed = ErrorEmbed('You do not own this channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-                    
-                    const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been untrusted`);
+            
+                    if (action === 'whitelist') {
+                        channelInfo.whitelist.push(user.id);
+                    } else {
+                        channelInfo.blacklist.push(user.id);
+                    }
+            
+                    fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
+                    const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been ${action === 'whitelist' ? 'trusted' : 'untrusted'}`);
                     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
                 }
             }
-            
         } catch (error) {
-            Error(`Error executing ${module.exports.name}: ${error.stack}`);
+            Error(`Error executing ${module.exports.name}:\n${error.stack}`);
 
             const errorEmbed = ErrorEmbed(error.message);
 
