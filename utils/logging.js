@@ -1,39 +1,39 @@
 const colors = require('colors');
+const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { MongoClient, ServerApiVersion } = require('mongodb');
-require('dotenv').config();
 
-// MongoDB Atlas connection string from .env file
-const uri = process.env.MONGODBURI;
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
-
-async function dbOutput(t, m) {
+function dbOutput(t, m) {
     const date = new Date();
     const formattedDate = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${date.getFullYear()}`;
     const time = date.toLocaleTimeString();
     const type = colors.stripColors(t);
     const content = colors.stripColors(m);
 
-    const dbName = 'Main';
-    const collectionName = formattedDate;
+    const dataFolderPath = path.join(__dirname, '..', 'data');
+    const dbPath = path.join(dataFolderPath, 'logs.db');
 
-    try {
-        await client.connect();
-        const db = client.db(dbName);
-        const collection = db.collection(collectionName);
+    require('fs').promises.mkdir(dataFolderPath, { recursive: true });
 
-        await collection.insertOne({ time, type, content });
-    } catch (error) {
-        console.error(error.message)
-    } finally {
-        await client.close();
-    }
+    const db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error('Error opening SQLite database:', err);
+            return;
+        }
+
+        db.serialize(() => {
+            const tableName = formattedDate;
+            db.run(`CREATE TABLE IF NOT EXISTS "${tableName}" (time TEXT, type TEXT, content TEXT)`);
+            const stmt = db.prepare(`INSERT INTO "${tableName}" (time, type, content) VALUES (?,?,?)`);
+            stmt.run(time, type, content);
+            stmt.finalize();
+        });
+
+        db.close((err) => {
+            if (err) {
+                console.error('Error closing SQLite database:', err);
+            }
+        });
+    });
 }
 
 function info(m, c) {
