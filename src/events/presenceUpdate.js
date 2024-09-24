@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { presenceUpdate, Error } = require('../../utils/logging');
 
 const lastStatus = new Map();
@@ -30,16 +32,25 @@ module.exports = {
                 return;
             }
 
-            const userId = newPresence.userID;
+            const userId = newPresence.user.id;
+            const username = newPresence.user.username;
+            const userDir = path.join(__dirname, '../../data/users', username);
+            const presenceFilePath = path.join(userDir, 'presence.json');
+
+            if (!fs.existsSync(userDir)) {
+                fs.mkdirSync(userDir, { recursive: true });
+            }
+
             const oldStatus = oldPresence ? oldPresence.status : undefined;
             const newStatus = newPresence.status;
 
             const oldActivity = oldPresence ? oldPresence.activities : undefined;
             const newActivity = newPresence ? newPresence.activities : undefined;
 
-            if (oldStatus !== newStatus) {
-                const user = newPresence.user.username;
+            const lastPresence = lastStatus.get(userId) || { status: null, activityText: null };
 
+            // Handle status change
+            if (oldStatus !== newStatus) {
                 let statusSymbol = '⬤';
                 let statusColor = '';
 
@@ -61,48 +72,35 @@ module.exports = {
                         break;
                 }
 
-                let presenceDetails = `${statusSymbol[statusColor]}`;
+                const presenceDetails = `${statusSymbol[statusColor]}`;
+                presenceUpdate(`${presenceDetails} ${username.grey}`);
 
-                if (!lastStatus.has(userId) || lastStatus.get(userId) !== newStatus) {
-                    presenceUpdate(`${presenceDetails} ${user.grey}`);
+                lastStatus.set(userId, { status: newStatus, activityText: lastPresence.activityText });
+            }
 
-                    lastStatus.set(userId, newStatus);
-                } 
-            } else if (!activitiesAreEqual(oldActivity, newActivity)) {
-                const user = newPresence.user.username;
-
+            // Handle activity change
+            if (!activitiesAreEqual(oldActivity, newActivity)) {
                 if (newActivity && newActivity.length > 0) {
-                    let activityName = '';
-                    let activityDetails = '';
-                    let activityState = '';
+                    const presenceData = {
+                        status: newPresence.status,
+                        activities: newActivity,
+                        timestamp: new Date().toISOString(),
+                    };
 
-                    for (const activity of newActivity) {
-                        if (activity.type !== 4) {
-                            if (activity.name) {
-                                activityName = `- ${activity.name} `;
-                            }
-                            
-                            if (activity.details) {
-                                activityDetails = `- ${activity.details} ` || '';
-                            }
+                    fs.writeFileSync(presenceFilePath, JSON.stringify(presenceData, null, 2));
 
-                            if (activity.state) {
-                                activityState = `- ${activity.state}` || '';
-                            }
-                            
-                            break;
-                        } else {
-                            activityState = `- ${activity.state}` || '';
-                        }
+                    const activityText = newActivity.map(activity => {
+                        let details = activity.name || '';
+                        if (activity.details) details += ` - ${activity.details}`;
+                        if (activity.state) details += ` - ${activity.state}`;
+                        return details;
+                    }).join(', ');
+
+                    // Only update presence if the activity text has changed
+                    if (lastPresence.activityText !== activityText) {
+                        presenceUpdate(`${username} ${activityText}`);
+                        lastStatus.set(userId, { status: lastPresence.status, activityText });
                     }
-
-                    const activityText = `${activityName}${activityDetails}${activityState}`.trim();
-
-                    if (activityText && (!lastStatus.has(userId) || lastStatus.get(userId) !== activityText)) {
-                        presenceUpdate(`${user} ${activityText}`);
-
-                        lastStatus.set(userId, activityText);
-                    }  
                 }
             }
         } catch (error) {

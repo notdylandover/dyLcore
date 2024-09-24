@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { Error, Done, Debug } = require('./logging');
+const { Error } = require('./logging');
 
 const fs = require('fs');
 const path = require('path');
@@ -61,13 +61,9 @@ const registerCommands = async (client) => {
 
         try {
             fs.writeFileSync(commandsFilePath, JSON.stringify(commandsWithIds, null, 2));
-            Done('Commands data with IDs successfully written to commands.json');
         } catch (error) {
             Error('Failed to write commands data to commands.json:', error);
         }
-
-        const commandsCount = await fetchCommandCount(client);
-        Done(`Successfully registered application commands. Total commands: ${commandsCount}`);
     } catch (error) {
         Error(`Failed to update commands: ${error.message}`);
     }

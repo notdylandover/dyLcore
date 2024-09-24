@@ -13,13 +13,14 @@ module.exports = {
             let oldmessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : " ";
             let newmessageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
 
-            if (oldMessage.partial) {
-                return; // TODO: Figure out a way to bypass bot partial messages
-                oldmessageContent = ' PARTIAL '.bgCyan.red;
-            }
-
+            // Ignore bot messages
             if (oldMessage.author.bot) {
                 return;
+            }
+
+            // Check if the message content hasn't changed and only embeds were added/updated
+            if (oldmessageContent === newmessageContent && oldMessage.embeds.length !== newMessage.embeds.length) {
+                return; // Skip logging if only embeds have changed
             }
 
             if (oldMessage.embeds.length > 0) {

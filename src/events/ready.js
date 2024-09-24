@@ -6,6 +6,7 @@ const isLive = require('../../utils/isLive');
 const setPresence = require("../../utils/setPresence");
 
 const cron = require("node-cron");
+const getBotInfo = require('../../utils/getBotInfo');
 
 const channels = [
     'atuesports',
@@ -25,6 +26,7 @@ module.exports = {
     name: 'ready',
     async execute(client) {
         try {
+            await getBotInfo(client);
             await registerCommands(client);
             setPresence(client);
 

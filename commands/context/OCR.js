@@ -10,8 +10,8 @@ module.exports = {
     data: new ContextMenuCommandBuilder()
         .setName('OCR')
         .setType(ApplicationCommandType.Message)
-        .setContexts(InteractionContextType.BotDM)
-        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
 
     async execute(interaction) {

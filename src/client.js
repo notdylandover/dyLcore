@@ -1,16 +1,18 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
-const { DiscordJS, Invalid, Error, Warn, WarnNoDB } = require('../utils/logging');
+const { DiscordJS, Invalid, Error, Warn } = require('../utils/logging');
+const startServer = require('../utils/server');
 
 const fs = require('fs');
 const path = require('path');
-
 require('dotenv').config();
 
 const Discord = require('discord.js');
 const { version: DJSVersion } = Discord;
 
 const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
+
+startServer(client);
 
 DiscordJS(`DiscordJS v${DJSVersion}`);
 client.login(process.env.TOKEN);
@@ -23,28 +25,31 @@ const verifiedEvents = [];
 const missingEvents = [];
 const invalidEvents = [];
 
-const disabledEventsPath = path.resolve(__dirname, '..', 'data', 'disabledEvents.json');
+const debugMode = process.env.DEBUG_MODE === 'true';
+const debugModePath = path.resolve(__dirname, '..', 'data', 'debugMode.json');
 
-let disabledEvents = [];
+let debugConfig = { disabledEvents: [] };
 
-if (fs.existsSync(disabledEventsPath)) {
-    const data = fs.readFileSync(disabledEventsPath);
-    disabledEvents = JSON.parse(data).disabledEvents || [];
+if (fs.existsSync(debugModePath)) {
+    const data = fs.readFileSync(debugModePath);
+    debugConfig = JSON.parse(data);
 } else {
-    Warn('No disabledEvents.json found.');
+    Warn('No debugMode.json found. Using an empty list of disabled events.');
 }
 
 for (const file of eventFiles) {
     try {
         const event = require(`./events/${file}`);
 
-        if (event.name && disabledEvents.includes(event.name)) {
-            WarnNoDB(`Disabled event: ${event.name}`);
-            continue;
-        }
-        
         if (event.name && typeof event.execute === 'function') {
+            const isEventInDebugList = debugConfig.disabledEvents.includes(event.name);
+
+            if (debugMode && isEventInDebugList) {
+                continue;
+            }
+
             verifiedEvents.push(event.name);
+
             client.on(event.name, async (...args) => {
                 try {
                     await event.execute(...args);
@@ -56,15 +61,10 @@ for (const file of eventFiles) {
             invalidEvents.push(file);
         }
     } catch (error) {
-        Error(`Error executing ${file}: ${error.message}`);
+        Error(`Error loading event ${file}: ${error.message}`);
         missingEvents.push(file);
     }
 }
-
-const allClientEvents = Object.keys(Discord.Client.prototype.constructor.name ? Discord.Client.prototype : Discord.Client);
-const implementedEvents = new Set(verifiedEvents);
-
-const missingClientEvents = allClientEvents.filter(event => !implementedEvents.has(event));
 
 if (missingEvents.length > 0) {
     Invalid(missingEvents.join('\n'));
@@ -72,18 +72,6 @@ if (missingEvents.length > 0) {
 
 if (invalidEvents.length > 0) {
     Invalid(invalidEvents.join('\n'));
-}
-
-if (missingClientEvents.length > 0) {
-    Invalid(missingClientEvents.join('\n'));
-}
-
-if (missingEvents.length > 0) {
-    missingEvents.forEach(file => Invalid(file));
-}
-
-if (invalidEvents.length > 0) {
-    invalidEvents.forEach(file => Invalid(file));
 }
 
 module.exports = client;

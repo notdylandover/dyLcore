@@ -1,6 +1,8 @@
+const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
+const { EMOJIS } = require('../../utils/constants');
 const fs = require('fs');
 const path = require('path');
-const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
+const { JoinToCreateVC, SuccessEmbedRemodal } = require('../../utils/embeds');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,13 +21,22 @@ module.exports = {
         const settingsFilePath = path.resolve(__dirname, `../../data/servers/${guild.id}.json`);
 
         if (!fs.existsSync(settingsFilePath)) {
-            fs.writeFileSync(settingsFilePath, JSON.stringify({}, null, 2));
+            fs.writeFileSync(settingsFilePath, JSON.stringify({ createdChannels: [] }, null, 2));
         }
 
         const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
 
         const joinToCreateVCChannel = settings.joinToCreateVC ? guild.channels.cache.get(settings.joinToCreateVC) : null;
         const interfaceChannel = settings.interfaceChannel ? guild.channels.cache.get(settings.interfaceChannel) : null;
+
+        if (interfaceChannel) {
+            try {
+                const messages = await interfaceChannel.messages.fetch({ limit: 5 });
+                await interfaceChannel.bulkDelete(messages, true);
+            } catch (err) {
+                console.error('Error deleting messages:', err);
+            }
+        }
 
         if (!joinToCreateVCChannel || !interfaceChannel) {
             if (joinToCreateVCChannel) await joinToCreateVCChannel.delete();
@@ -55,27 +66,34 @@ module.exports = {
 
         const renameButton = new ButtonBuilder()
             .setCustomId('rename_channel')
-            .setLabel('Rename Channel')
+            .setEmoji(EMOJIS.RenameField)
             .setStyle(ButtonStyle.Secondary);
 
         const trustButton = new ButtonBuilder()
-            .setCustomId('trust_user')
-            .setLabel('Trust User')
+            .setCustomId('whitelist_user')
+            .setEmoji(EMOJIS.AddUser)
             .setStyle(ButtonStyle.Secondary);
 
         const untrustButton = new ButtonBuilder()
-            .setCustomId('untrust_user')
-            .setLabel('Untrust User')
+            .setCustomId('blacklist_user')
+            .setEmoji(EMOJIS.RemoveUser)
             .setStyle(ButtonStyle.Secondary);
 
-        const row = new ActionRowBuilder()
-            .addComponents(renameButton, trustButton, untrustButton);
+        const row = new ActionRowBuilder().addComponents(renameButton, trustButton, untrustButton);
 
-        await guild.channels.cache.get(settings.interfaceChannel).send({
-            content: 'Manage your Join to Create VC here:',
-            components: [row],
-        });
+        try {
+            const JoinToCreateVCEmbed = JoinToCreateVC();
 
-        return interaction.reply({ content: 'Join to Create VC has been set up or updated!', ephemeral: true });
+            await guild.channels.cache.get(settings.interfaceChannel).send({
+                embeds: [JoinToCreateVCEmbed],
+                components: [row],
+            });
+        } catch (err) {
+            console.error('Error sending message:', err);
+        }
+
+        const successEmbed = SuccessEmbedRemodal('Join to Create VC has been set up or updated!');
+
+        return interaction.reply({ embeds: [successEmbed] });
     }
 };

@@ -59,6 +59,8 @@ module.exports = {
                 const { customId } = interaction;
 
                 if (customId === 'rename_channel') {
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Rename Channel").magenta}`);
+
                     const modal = new ModalBuilder()
                         .setCustomId('rename_channel_modal')
                         .setTitle('Rename Channel');
@@ -72,10 +74,12 @@ module.exports = {
                     modal.addComponents(row);
 
                     await interaction.showModal(modal);
-                } else if (customId === 'trust_user') {
+                } else if (customId === 'whitelist_user') {
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Whitelist User").magenta}`);
+
                     const modal = new ModalBuilder()
                         .setCustomId('trust_user_modal')
-                        .setTitle('Trust a User');
+                        .setTitle('Whitelist a User');
 
                     const userIdInput = new TextInputBuilder()
                         .setCustomId('trusted_user_id')
@@ -86,10 +90,12 @@ module.exports = {
                     modal.addComponents(row);
 
                     await interaction.showModal(modal);
-                } else if (customId === 'untrust_user') {
+                } else if (customId === 'blacklist_user') {
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Blacklist User").magenta}`);
+
                     const modal = new ModalBuilder()
                         .setCustomId('untrust_user_modal')
-                        .setTitle('Untrust a User');
+                        .setTitle('Blacklist a User');
 
                     const userIdInput = new TextInputBuilder()
                         .setCustomId('untrusted_user_id')
@@ -103,25 +109,27 @@ module.exports = {
                 }
             } else if (interaction.isModalSubmit()) {
                 const { customId } = interaction;
-            
+
                 if (customId === 'rename_channel_modal') {
                     const newChannelName = interaction.fields.getTextInputValue('new_channel_name');
                     const member = interaction.member;
                     const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
                     const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
-            
+
                     const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
-            
+
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Rename Channel").magenta} name:${newChannelName.magenta}`);
+
                     if (!member.voice.channel) {
                         const errorEmbed = ErrorEmbed('You are not in a voice channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-            
+
                     if (channelInfo.ownerId !== member.id) {
                         const errorEmbed = ErrorEmbed('You do not own this channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-            
+
                     await member.voice.channel.setName(newChannelName);
                     const successEmbed = SuccessEmbedRemodal(`Channel renamed to \` ${newChannelName} \``);
                     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
@@ -129,38 +137,77 @@ module.exports = {
                     const input = interaction.fields.getTextInputValue(customId === 'trust_user_modal' ? 'trusted_user_id' : 'untrusted_user_id');
                     const action = customId === 'trust_user_modal' ? 'whitelist' : 'blacklist';
                     let user;
-            
+
                     try {
                         user = await interaction.guild.members.fetch(input);
                     } catch {
                         const members = await interaction.guild.members.fetch();
                         user = members.find(member => member.user.username === input || member.user.tag === input);
                     }
-            
+
                     if (!user) {
                         const errorEmbed = ErrorEmbed('User not found.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-            
+
+                    interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Rename Channel").magenta} ${action.magenta}:${(user.user.tag).magenta}`);
+
                     const member = interaction.member;
                     const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
                     const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
-            
+
                     const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
-            
+
                     if (channelInfo.ownerId !== member.id) {
                         const errorEmbed = ErrorEmbed('You do not own this channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
-            
+
+                    const voiceChannel = interaction.guild.channels.cache.get(member.voice.channel.id);
+
+                    // Check if the user is already in the whitelist/blacklist and remove them if necessary
                     if (action === 'whitelist') {
+                        if (channelInfo.whitelist.includes(user.id)) {
+                            const errorEmbed = ErrorEmbed(`User <@${user.user.id}> is already whitelisted.`);
+                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        }
+
+                        // Remove from blacklist if the user is there
+                        const blacklistIndex = channelInfo.blacklist.indexOf(user.id);
+                        if (blacklistIndex !== -1) {
+                            channelInfo.blacklist.splice(blacklistIndex, 1);
+                        }
+
                         channelInfo.whitelist.push(user.id);
-                    } else {
+                        await voiceChannel.permissionOverwrites.edit(user.id, {
+                            Connect: true
+                        });
+                    } else if (action === 'blacklist') {
+                        if (channelInfo.blacklist.includes(user.id)) {
+                            const errorEmbed = ErrorEmbed(`User <@${user.user.id}> is already blacklisted.`);
+                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        }
+
+                        // Remove from whitelist if the user is there
+                        const whitelistIndex = channelInfo.whitelist.indexOf(user.id);
+                        if (whitelistIndex !== -1) {
+                            channelInfo.whitelist.splice(whitelistIndex, 1);
+                        }
+
                         channelInfo.blacklist.push(user.id);
+                        await voiceChannel.permissionOverwrites.edit(user.id, {
+                            Connect: false,
+                            ViewChannel: true
+                        });
+
+                        if (user.voice.channel && user.voice.channel.id === voiceChannel.id) {
+                            await user.voice.disconnect('Untrusted');
+                        }
                     }
-            
+
+                    // Save the updated settings
                     fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
-                    const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been ${action === 'whitelist' ? 'trusted' : 'untrusted'}`);
+                    const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been ${action === 'whitelist' ? 'whitelisted' : 'blacklisted'}`);
                     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
                 }
             }

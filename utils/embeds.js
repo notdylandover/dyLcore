@@ -3,10 +3,27 @@ const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
+module.exports.JoinToCreateVC = function() {
+    const embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setDescription(
+            `# Join to Create VC Interface\n\n` +
+            `${EMOJIS.RenameField} \` Rename the voice channel \`\n` +
+            `${EMOJIS.AddUser} \` Whitelist a user \`\n` +
+            `${EMOJIS.RemoveUser} \` Blacklist a user \`\n`
+        )
+        .setFooter({
+            iconURL: LINKS.brand,
+            text: `Use the buttons below to control the voice channel.`
+        });
+
+    return embed;
+};
+
 module.exports.OCR = function(ocr, image) {
     const embed = new EmbedBuilder()
         .setColor(COLORS.default)
-        .setDescription(`\`\`\`\n${ocr}\n\`\`\` `)
+        .setDescription(`\`\`\`\n${ocr}\n\`\`\``)
         .setThumbnail(image)
         .setFooter({
             iconURL: LINKS.google,
@@ -487,7 +504,7 @@ module.exports.SuccessEmbed = function(title) {
 module.exports.SuccessEmbedRemodal = function(title) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.done)
-        .setDescription(title)
+        .setDescription(`### ${title}`)
 };
 
 module.exports.InfoEmbed = function(info) {
