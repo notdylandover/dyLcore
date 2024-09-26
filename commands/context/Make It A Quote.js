@@ -12,7 +12,7 @@ module.exports = {
     data: new ContextMenuCommandBuilder()
         .setName("Make It A Quote")
         .setType(ApplicationCommandType.Message)
-        .setContexts(InteractionContextType.BotDM)
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
         .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
     async execute(interaction) {

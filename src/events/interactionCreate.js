@@ -106,13 +106,85 @@ module.exports = {
                     modal.addComponents(row);
 
                     await interaction.showModal(modal);
+                } else if (customId === 'lock_channel') {
+                    const member = interaction.member;
+            
+                    if (!member.voice.channel) {
+                        const errorEmbed = ErrorEmbed('You are not in a voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+            
+                    const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
+                    const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
+            
+                    const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
+            
+                    if (!channelInfo) {
+                        const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+            
+                    if (channelInfo.ownerId !== member.id) {
+                        const errorEmbed = ErrorEmbed('You do not own this channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+            
+                    const voiceChannel = interaction.guild.channels.cache.get(member.voice.channel.id);
+            
+                    const everyoneRolePermissions = voiceChannel.permissionOverwrites.cache.get(interaction.guild.roles.everyone.id);
+            
+                    const isLocked = everyoneRolePermissions?.deny.has('Connect');
+            
+                    if (isLocked) {
+                        await voiceChannel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+                            Connect: true
+                        });
+                        const unlockEmbed = SuccessEmbedRemodal('Channel has been unlocked. Everyone can connect.');
+                        await interaction.reply({ embeds: [unlockEmbed], ephemeral: true });
+                    } else {
+                        await voiceChannel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+                            Connect: false
+                        });
+                        const lockEmbed = SuccessEmbedRemodal('Channel has been locked. Only the owner can connect.');
+                        await interaction.reply({ embeds: [lockEmbed], ephemeral: true });
+                    }
+                } else if (customId === 'limit_user') {
+                    const member = interaction.member;
+                
+                    if (!member.voice.channel) {
+                        const errorEmbed = ErrorEmbed('You are not in a voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+                
+                    const modal = new ModalBuilder()
+                        .setCustomId('limit_user_modal')
+                        .setTitle('Set User Limit');
+                
+                    const userLimitInput = new TextInputBuilder()
+                        .setCustomId('user_limit')
+                        .setLabel('Enter User Limit (1-99)')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder('1')
+                        .setMaxLength(2);
+                
+                    const row = new ActionRowBuilder().addComponents(userLimitInput);
+                    modal.addComponents(row);
+                
+                    await interaction.showModal(modal);
                 }
+                
             } else if (interaction.isModalSubmit()) {
                 const { customId } = interaction;
 
                 if (customId === 'rename_channel_modal') {
                     const newChannelName = interaction.fields.getTextInputValue('new_channel_name');
                     const member = interaction.member;
+
+                    if (!member.voice.channel) {
+                        const errorEmbed = ErrorEmbed('You are not in a voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+
                     const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
                     const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
 
@@ -120,8 +192,8 @@ module.exports = {
 
                     interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${("Rename Channel").magenta} name:${newChannelName.magenta}`);
 
-                    if (!member.voice.channel) {
-                        const errorEmbed = ErrorEmbed('You are not in a voice channel.');
+                    if (!channelInfo) {
+                        const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                     }
 
@@ -158,6 +230,11 @@ module.exports = {
 
                     const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
 
+                    if (!channelInfo) {
+                        const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+
                     if (channelInfo.ownerId !== member.id) {
                         const errorEmbed = ErrorEmbed('You do not own this channel.');
                         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -165,14 +242,12 @@ module.exports = {
 
                     const voiceChannel = interaction.guild.channels.cache.get(member.voice.channel.id);
 
-                    // Check if the user is already in the whitelist/blacklist and remove them if necessary
                     if (action === 'whitelist') {
                         if (channelInfo.whitelist.includes(user.id)) {
                             const errorEmbed = ErrorEmbed(`User <@${user.user.id}> is already whitelisted.`);
                             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                         }
 
-                        // Remove from blacklist if the user is there
                         const blacklistIndex = channelInfo.blacklist.indexOf(user.id);
                         if (blacklistIndex !== -1) {
                             channelInfo.blacklist.splice(blacklistIndex, 1);
@@ -188,7 +263,6 @@ module.exports = {
                             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                         }
 
-                        // Remove from whitelist if the user is there
                         const whitelistIndex = channelInfo.whitelist.indexOf(user.id);
                         if (whitelistIndex !== -1) {
                             channelInfo.whitelist.splice(whitelistIndex, 1);
@@ -205,9 +279,42 @@ module.exports = {
                         }
                     }
 
-                    // Save the updated settings
                     fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
                     const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been ${action === 'whitelist' ? 'whitelisted' : 'blacklisted'}`);
+                    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+                } else if (customId === 'limit_user_modal') {
+                    const userLimit = interaction.fields.getTextInputValue('user_limit');
+                    const member = interaction.member;
+                    const parsedLimit = parseInt(userLimit);
+                
+                    if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 99) {
+                        const errorEmbed = ErrorEmbed('Invalid user limit. Please enter a number between 1 and 99.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+                
+                    if (!member.voice.channel) {
+                        const errorEmbed = ErrorEmbed('You are not in a voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+                
+                    const settingsFilePath = path.resolve(__dirname, `../../data/servers/${interaction.guild.id}.json`);
+                    const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
+                
+                    const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
+                
+                    if (!channelInfo) {
+                        const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+                
+                    if (channelInfo.ownerId !== member.id) {
+                        const errorEmbed = ErrorEmbed('You do not own this channel.');
+                        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    }
+                
+                    await member.voice.channel.setUserLimit(parsedLimit);
+                
+                    const successEmbed = SuccessEmbedRemodal(`User limit has been set to \` ${parsedLimit} \`.`);
                     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
                 }
             }

@@ -10,7 +10,9 @@ module.exports.JoinToCreateVC = function() {
             `# Join to Create VC Interface\n\n` +
             `${EMOJIS.RenameField} \` Rename the voice channel \`\n` +
             `${EMOJIS.AddUser} \` Whitelist a user \`\n` +
-            `${EMOJIS.RemoveUser} \` Blacklist a user \`\n`
+            `${EMOJIS.RemoveUser} \` Blacklist a user \`\n` +
+            `${EMOJIS.lock} \` Lock/Unlock the voice channel \`\n` +
+            `${EMOJIS.limit} \` Set the user limit in the voice channel \`\n`
         )
         .setFooter({
             iconURL: LINKS.brand,

@@ -1,2 +1,2 @@
 # dyLcore
-a multipurpose bot
+the best bot on discord

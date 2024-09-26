@@ -12,13 +12,11 @@ module.exports = {
 
             const updateMessage = await message.reply({ embeds: [libraryUpdatesEmbed], allowedMentions: { repliedUser: false }});
 
-            // Update Emojis
             await updateEmojis();
             const emojiUpdatesEmbed = DoneEmbed(`Finished emoji updates to the client.`);
 
             await updateMessage.edit({ embeds: [libraryUpdatesEmbed, emojiUpdatesEmbed], allowedMentions: { repliedUser: false }});
             
-            // Restart Client
             message.client.destroy();
             return process.exit(0);
         } catch (error) {
