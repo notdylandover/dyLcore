@@ -1,15 +1,27 @@
-const { Debug, Error, Live } = require('./logging');
+const { DebugNoDB, Error } = require('./logging');
 const { LiveEmbed } = require('./embeds');
 
 require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 
 const twitchClientID = process.env.TWITCHCLIENTID;
 const twitchSecret = process.env.TWITCHCLIENTSECRET;
-const liveConfigFilePath = './data/liveConfig.json';
-const liveRoleConfigFilePath = './data/liveRoleConfig.json';
-const twitchUsersFilePath = './data/twitchUsers.json';
+const serversDataPath = path.join(__dirname, '..', 'data', 'servers');
+const twitchUsersFilePath = path.join(__dirname, '..', 'data', 'twitchUsers.json');
+
+function ensureFileExists(filePath, initialData = '{}') {
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, initialData, 'utf-8');
+    }
+}
+
+function ensureGuildConfigDefaults(guildConfig) {
+    if (!guildConfig.liveChannelId) guildConfig.liveChannelId = null;
+    if (!guildConfig.liveRoleId) guildConfig.liveRoleId = null;
+    if (!Array.isArray(guildConfig.messageIds)) guildConfig.messageIds = []; // Ensure messageIds is an array
+}
 
 async function getToken() {
     try {
@@ -68,7 +80,7 @@ async function getUserProfile(userLogin, token) {
 
         return response.data.data[0];
     } catch (error) {
-        Error(`Error fetching user profile: ${error.message}`);
+        Error(`Error fetching user profile:\n${error.message}`);
         throw error;
     }
 }
@@ -78,70 +90,93 @@ module.exports = async function isLive(client, channels) {
         const token = await getToken();
         const streams = await checkLiveStatus(token, channels);
 
-        const liveConfig = JSON.parse(fs.readFileSync(liveConfigFilePath));
-        const guildId = Object.keys(liveConfig)[0];
-        const channelId = liveConfig[guildId]?.channelId;
-        let messageIds = liveConfig[guildId]?.messageIds || [];
+        ensureFileExists(twitchUsersFilePath, '{}');
+        const twitchUsers = JSON.parse(fs.readFileSync(twitchUsersFilePath, 'utf-8'));
 
-        const liveRoleConfig = JSON.parse(fs.readFileSync(liveRoleConfigFilePath));
-        const liveRoleId = liveRoleConfig[guildId]?.roleId;
+        const guilds = await client.guilds.fetch();
 
-        const twitchUsers = JSON.parse(fs.readFileSync(twitchUsersFilePath));
+        for (const guild of guilds.values()) {
+            const configFile = path.join(serversDataPath, `${guild.id}.json`);
 
-        if (streams.length > 0) {
-            await Promise.all(streams.map(async stream => {
-                const thumbnailURL = stream.thumbnail_url.replace('{width}', '1920').replace('{height}', '1080');
-                const userProfile = await getUserProfile(stream.user_name, token);
-                const avatarURL = userProfile.profile_image_url;
+            ensureFileExists(configFile, JSON.stringify({
+                liveChannelId: null,
+                liveRoleId: null,
+                messageIds: []
+            }, null, 2));
 
-                const embed = new LiveEmbed({
-                    username: stream.user_name,
-                    avatarURL: avatarURL,
-                    title: stream.title,
-                    category: stream.game_name,
-                    viewers: stream.viewer_count,
-                    thumbnailURL: thumbnailURL
-                });
+            let guildConfig = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+            ensureGuildConfigDefaults(guildConfig);
 
-                if (channelId) {
-                    const existingMessageId = messageIds.find(msgId => msgId.stream === stream.user_name);
-                    
+            const { liveChannelId, liveRoleId } = guildConfig;
+
+            if (!liveChannelId) {
+                continue;
+            }
+
+            if (streams.length > 0) {
+                await Promise.all(streams.map(async stream => {
+                    const thumbnailURL = stream.thumbnail_url.replace('{width}', '1920').replace('{height}', '1080');
+                    const userProfile = await getUserProfile(stream.user_name, token);
+                    const avatarURL = userProfile.profile_image_url;
+
+                    const embed = new LiveEmbed({
+                        username: stream.user_name,
+                        avatarURL: avatarURL,
+                        title: stream.title,
+                        category: stream.game_name,
+                        viewers: stream.viewer_count,
+                        thumbnailURL: thumbnailURL
+                    });
+
+                    const existingMessageId = guildConfig.messageIds.find(msgId => msgId.stream === stream.user_name);
+
                     if (existingMessageId) {
-                        await updateMessage(client, channelId, existingMessageId.messageId, { content: '', embeds: [embed] });
+                        await updateMessage(client, liveChannelId, existingMessageId.messageId, { content: '', embeds: [embed] });
                     } else {
-                        const newMessageId = await sendMessage(client, channelId, '', embed);
-                        messageIds.push({ stream: stream.user_name, messageId: newMessageId });
-                        storeLiveConfig(guildId, channelId, messageIds);
+                        const newMessageId = await sendMessage(client, liveChannelId, '', embed);
+                        guildConfig.messageIds.push({ stream: stream.user_name, messageId: newMessageId });
+                        storeLiveConfig(guild.id, guildConfig);
                     }
 
                     const discordUserId = twitchUsers[stream.user_name]?.discordUserId;
                     if (discordUserId && liveRoleId) {
-                        const guild = await client.guilds.fetch(guildId);
-                        const member = await guild.members.fetch(discordUserId);
+                        let member;
+                        try {
+                            member = await guild.members.fetch(discordUserId);
+                        } catch (err) {
+                            if (err.code === 50001) {
+                                return; 
+                            }
+                            return;
+                        }
                         if (member) {
-                            await member.roles.add(liveRoleId);
+                            await member.roles.add(liveRoleId).catch(err => Error(`Error adding role: ${err.message}`));
                         }
                     }
-                } else {
-                    Error('Channel ID not found in config.');
-                }
-            }));
-        } else {
-            if (messageIds.length > 0) {
-                await Promise.all(messageIds.map(async msg => {
-                    await deleteMessage(client, channelId, msg.messageId);
                 }));
-                storeLiveConfig(guildId, channelId, null);
-                messageIds = [];
-            }
+            } else {
+                if (guildConfig.messageIds && guildConfig.messageIds.length > 0) {
+                    await Promise.all(guildConfig.messageIds.map(async msg => {
+                        await deleteMessage(client, liveChannelId, msg.messageId);
+                    }));
+                    storeLiveConfig(guild.id, { ...guildConfig, messageIds: [] });
+                }
 
-            for (const twitchUser in twitchUsers) {
-                const discordUserId = twitchUsers[twitchUser]?.discordUserId;
-                if (discordUserId && liveRoleId) {
-                    const guild = await client.guilds.fetch(guildId);
-                    const member = await guild.members.fetch(discordUserId);
-                    if (member) {
-                        await member.roles.remove(liveRoleId);
+                for (const twitchUser of Object.keys(twitchUsers)) {
+                    const discordUserId = twitchUsers[twitchUser]?.discordUserId;
+                    if (discordUserId && liveRoleId) {
+                        let member;
+                        try {
+                            member = await guild.members.fetch(discordUserId);
+                        } catch (err) {
+                            if (err.code === 50001) {
+                                continue; 
+                            }
+                            continue;
+                        }
+                        if (member) {
+                            await member.roles.remove(liveRoleId).catch(err => Error(`Error removing role: ${err.message}`));
+                        }
                     }
                 }
             }
@@ -149,7 +184,7 @@ module.exports = async function isLive(client, channels) {
 
         return streams.map(stream => stream.user_name);
     } catch (error) {
-        Error(`Error in isLive function: ${error.message}`);
+        Error(`Error in isLive function:\n${error.message}`);
         throw error;
     }
 }
@@ -164,7 +199,7 @@ async function sendMessage(client, channelId, content, embed) {
             throw new Error('Channel not found or is not a text channel.');
         }
     } catch (error) {
-        Error(`Error sending message: ${error.message}`);
+        Error(`Error sending message:\n${error.message}`);
         throw error;
     }
 }
@@ -183,7 +218,7 @@ async function updateMessage(client, channelId, messageId, messageContent) {
             throw new Error('Channel not found or is not a text channel.');
         }
     } catch (error) {
-        Error(`Error updating message: ${error.message}`);
+        Error(`Error updating message:\n${error.message}`);
         throw error;
     }
 }
@@ -202,18 +237,17 @@ async function deleteMessage(client, channelId, messageId) {
             throw new Error('Channel not found or is not a text channel.');
         }
     } catch (error) {
-        Error(`Error deleting message: ${error.message}`);
+        Error(`Error deleting message:\n${error.message}`);
         throw error;
     }
 }
 
-function storeLiveConfig(guildId, channelId, messageIds) {
+function storeLiveConfig(guildId, guildConfig) {
     try {
-        let liveConfig = JSON.parse(fs.readFileSync(liveConfigFilePath, 'utf-8'));
-        liveConfig[guildId] = { channelId, messageIds };
-        fs.writeFileSync(liveConfigFilePath, JSON.stringify(liveConfig, null, 2));
+        const configFile = path.join(serversDataPath, `${guildId}.json`);
+        fs.writeFileSync(configFile, JSON.stringify(guildConfig, null, 2));
     } catch (error) {
-        Error(`Error storing live config: ${error.message}`);
+        Error(`Error storing live config:\n${error.message}`);
         throw error;
     }
 }

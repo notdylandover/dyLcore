@@ -1,5 +1,5 @@
 const { ChannelType, PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require("discord.js");
-const { ErrorEmbed, SuccessEmbed } = require("../../utils/embeds");
+const { ErrorEmbed, SuccessEmbedRemodal } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
 const fs = require('fs');
@@ -24,33 +24,29 @@ module.exports = {
         try {
             const channel = interaction.options.getChannel('channel');
 
-            const dataFolder = path.join(__dirname, '..', 'data');
+            const dataFolder = path.join(__dirname, '..', '..', 'data', 'servers');
             if (!fs.existsSync(dataFolder)) {
-                fs.mkdirSync(dataFolder);
+                fs.mkdirSync(dataFolder, { recursive: true });
             }
 
-            const configFile = path.join(dataFolder, 'liveConfig.json');
+            const configFile = path.join(dataFolder, `${interaction.guildId}.json`);
             let config = {};
 
             if (fs.existsSync(configFile)) {
-                config = JSON.parse(fs.readFileSync(configFile));
+                config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
             }
 
-            config[interaction.guildId] = {
-                channelId: channel.id,
-                messageIds: null
-            };
+            config.liveChannelId = channel.id;
 
             fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
 
-            const successEmbed = SuccessEmbed(`Live notifications channel set to ${channel}`);
+            const successEmbed = SuccessEmbedRemodal(`Live notifications channel set to <#${channel.id}>`);
             interaction.editReply({ embeds: [successEmbed] });
 
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
             const errorEmbed = ErrorEmbed(error.message);
-
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
             } else {
