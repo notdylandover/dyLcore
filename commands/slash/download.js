@@ -43,10 +43,7 @@ module.exports = {
             });
         };
 
-        const downloadStream = async (url, options, outputPath) => {
-            Debug(`Downloading from URL: ${url}`);
-            Debug(`Options: ${JSON.stringify(options)}`);
-        
+        const downloadStream = async (url, options, outputPath) => {        
             return new Promise((resolve, reject) => {
                 const fileStream = fs.createWriteStream(outputPath, { flags: 'w' });
                 const stream = ytdl(url, options);
@@ -103,8 +100,6 @@ module.exports = {
 
             const ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
 
-            Debug(`FFmpeg started for ${link}`);
-
             ffmpegProcess.on('close', async (code) => {
                 if (code !== 0) {
                     Error(`FFmpeg process exited with code ${code}`);
@@ -127,7 +122,7 @@ module.exports = {
                             const stopTime = new Date();
                             const timeTook = (stopTime - startTime) / 1000;
 
-                            const fileEmbed = FileEmbed(fileSize.toFixed(2), timeTook.toFixed(2));
+                            const fileEmbed = FileEmbed(timeTook.toFixed(2));
                             await interaction.editReply({ embeds: [fileEmbed], files: [filePath] });
 
                             cleanUp([videoPath, audioPath, outputPath, mp3Path]);

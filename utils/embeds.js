@@ -243,10 +243,11 @@ module.exports.HelpEmbed = function(title, description, message) {
         })
 };
 
-module.exports.FileEmbed = function(fileSize, timeTook) {
+module.exports.FileEmbed = function(timeTook) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)
-        .setDescription(`Size: ${fileSize}MB • Took ${timeTook}s`)
+        .setDescription(`${EMOJIS.ico_clock} Took ${timeTook}s`
+        )
 };
 
 module.exports.CodeEmbed = function(output) {

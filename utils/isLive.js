@@ -140,17 +140,22 @@ module.exports = async function isLive(client, channels) {
 
                     const discordUserId = twitchUsers[stream.user_name]?.discordUserId;
                     if (discordUserId && liveRoleId) {
+                        const updatedGuild = await client.guilds.fetch(guild.id);
                         let member;
                         try {
-                            member = await guild.members.fetch(discordUserId);
-                        } catch (err) {
-                            if (err.code === 50001) {
-                                return; 
+                            member = await updatedGuild.members.fetch(discordUserId);
+                        } catch (error) {
+                            if (error.message.includes('Unknown Member')) {
+                                return;
+                            } else {
+                                return Error(`Could not fetch member: ${error.message}`);
                             }
-                            return;
                         }
+
                         if (member) {
-                            await member.roles.add(liveRoleId).catch(err => Error(`Error adding role: ${err.message}`));
+                            if (!member.roles.cache.has(liveRoleId)) {
+                                await member.roles.add(liveRoleId)
+                            }
                         }
                     }
                 }));
@@ -165,17 +170,22 @@ module.exports = async function isLive(client, channels) {
                 for (const twitchUser of Object.keys(twitchUsers)) {
                     const discordUserId = twitchUsers[twitchUser]?.discordUserId;
                     if (discordUserId && liveRoleId) {
+                        const updatedGuild = await client.guilds.fetch(guild.id);
                         let member;
                         try {
-                            member = await guild.members.fetch(discordUserId);
-                        } catch (err) {
-                            if (err.code === 50001) {
-                                continue; 
+                            member = await updatedGuild.members.fetch(discordUserId);
+                        } catch (error) {
+                            if (error.message.includes('Unknown Member')) {
+                                return;
+                            } else {
+                                return Error(`Could not fetch member: ${error.message}`);
                             }
-                            continue;
                         }
+
                         if (member) {
-                            await member.roles.remove(liveRoleId).catch(err => Error(`Error removing role: ${err.message}`));
+                            if (member.roles.cache.has(liveRoleId)) {
+                                await member.roles.remove(liveRoleId)
+                            }
                         }
                     }
                 }
