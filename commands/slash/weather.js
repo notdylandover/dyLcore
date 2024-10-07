@@ -102,7 +102,7 @@ module.exports = {
 
                     const learnMoreUrl = generateAlertURL(zoneData.forecastZone, zoneData.county, zoneData.lat, zoneData.lon, `${city}, ${state}`);
                     
-                    description += `${EMOJIS.weather_alert} ${alert.event}\n-# Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
+                    description += `**${EMOJIS.weather_alert} ${alert.event}**\n-# Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
                 });
             } else {
                 description += '';
