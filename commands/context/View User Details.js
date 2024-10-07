@@ -4,6 +4,7 @@ const { CommandError } = require("../../utils/logging");
 const { EMOJIS } = require("../../utils/constants");
 
 module.exports = {
+    premium: false,
     data: new ContextMenuCommandBuilder()
         .setName("View User Details")
         .setType(ApplicationCommandType.User)

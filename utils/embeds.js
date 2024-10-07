@@ -4,7 +4,7 @@ const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
 module.exports.JoinToCreateVC = function() {
-    const embed = new EmbedBuilder()
+    return embed = new EmbedBuilder()
         .setColor(COLORS.default)
         .setDescription(
             `# Join to Create VC Interface\n\n` +
@@ -18,12 +18,10 @@ module.exports.JoinToCreateVC = function() {
             iconURL: LINKS.brand,
             text: `Use the buttons below to control the voice channel.`
         });
-
-    return embed;
 };
 
 module.exports.OCR = function(ocr, image) {
-    const embed = new EmbedBuilder()
+    return embed = new EmbedBuilder()
         .setColor(COLORS.default)
         .setDescription(`\`\`\`\n${ocr}\n\`\`\``)
         .setThumbnail(image)
@@ -32,8 +30,6 @@ module.exports.OCR = function(ocr, image) {
             text: `${TEXT.brand} • Google Cloud Vision`
         })
         .setTimestamp();
-
-    return embed;
 };
 
 module.exports.messageDelete = function(message) {
@@ -90,69 +86,40 @@ module.exports.guildMemberUpdateName = function(change, username, oldMemberName,
         .setTimestamp()
 };
 
-module.exports.Reminder = function(message) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.done)
-        .setDescription(`${EMOJIS.ico_checkmark} **${message}**`)
-};
-
-module.exports.StarboardMessage = function(messageAuthor, authorAvatar, messageContent, reactionCount, messageLink) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.default)
-        .setAuthor({
-            name: messageAuthor,
-            iconURL: authorAvatar
-        })
-        .setDescription(
-            `${messageContent}\n\n` +
-            `⭐ ${reactionCount}\n\n` +
-            `-# [Go to message](${messageLink})`
-        )
-};
-
 module.exports.DoneEmbed = function(message) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.done)
         .setDescription(`${EMOJIS.ico_checkmark} **${message}**`)
 }
 
-module.exports.EmbedTest = function(URL) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.test)
-        .setTitle(`This is a title`)
-        .setDescription(`This is a description\n` + `With multiple lines`)
-        .addFields(
-            {
-                name: 'Inline',
-                value: 'Value',
-                inline: true
-            },
-
-            {
-                name: 'Inline',
-                value: null,
-                inline: true
-            }
-        )
-        .addFields(
-            {
-                name: 'This is a regular field',
-                value: 'With a value',
-                inline: false
-            },
-
-            {
-                name: 'This is another regular field',
-                value: 'With a value',
-                inline: false
-            }
-        )
-        .setImage(URL)
+module.exports.AutomodRulesEmbed = function(automodRules) {
+    const embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setTitle('AutoMod Rules')
+        .setDescription('Here are the current AutoMod rules set for this server:')
         .setFooter({
             iconURL: LINKS.brand,
-            text: `This is a footer, with an iconURL`
-        })
-}
+            text: TEXT.brand
+        });
+
+    if (automodRules.length === 0) {
+        embed.setDescription('No AutoMod rules are currently set for this server.');
+        return embed;
+    }
+
+    automodRules.forEach(rule => {
+        const actionsList = rule.actions.map(action => action.type).join(', ') || 'No actions defined';
+        embed.addFields({
+            name: rule.name,
+            value: `**Status**: ${rule.enabled ? 'Enabled' : 'Disabled'}\n` +
+                   `**Trigger Type**: ${rule.triggerType}\n` +
+                   `**Actions**: ${actionsList}`,
+            inline: false
+        });
+    });
+
+    return embed;
+};
 
 module.exports.OutageEmbed = function(authorAvatar, timestamp, description) {
     return embed = new EmbedBuilder()
@@ -246,8 +213,7 @@ module.exports.HelpEmbed = function(title, description, message) {
 module.exports.FileEmbed = function(timeTook) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)
-        .setDescription(`${EMOJIS.ico_clock} Took ${timeTook}s`
-        )
+        .setDescription(`${EMOJIS.ico_clock} Took ${timeTook}s`)
 };
 
 module.exports.CodeEmbed = function(output) {
@@ -518,6 +484,12 @@ module.exports.InfoEmbed = function(info) {
             iconURL: LINKS.brand,
             text: TEXT.brand
         })
+};
+
+module.exports.WarnEmbed = function(message) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.orange)
+        .setDescription(`\`\`\`\n${message}\n\`\`\``)
 };
 
 module.exports.ErrorEmbed = function(message) {

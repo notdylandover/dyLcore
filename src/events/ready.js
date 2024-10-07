@@ -1,6 +1,6 @@
 const { registerCommands } = require('../../utils/registerCommands');
 const { Error } = require('../../utils/logging');
-const { applyBirthdayRoles } = require('../../utils/birthday');
+const { fetchAllEntitlements } = require('../../utils/entitlement');
 
 const isLive = require('../../utils/isLive');
 const setPresence = require("../../utils/setPresence");
@@ -27,16 +27,13 @@ module.exports = {
     async execute(client) {
         try {
             await getBotInfo(client);
+            await fetchAllEntitlements(client);
             await registerCommands(client);
             setPresence(client);
 
-            cron.schedule('*/15 * * * *', () => {
-                applyBirthdayRoles(client);
-            });
-            
             cron.schedule("*/15 * * * * *", async () => {
-                setPresence(client);
                 await isLive(client, channels);
+                setPresence(client);
             });
         } catch (error) {
             return Error(`Error executing ${module.exports.name}:\n${error.stack}`);

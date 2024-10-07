@@ -4,6 +4,7 @@ const { Error, CommandError } = require("../../utils/logging");
 const { BADGES, EMOJIS } = require("../../utils/constants");
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("server")
         .setDescription('Get information about the server')

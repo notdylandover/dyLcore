@@ -3,6 +3,7 @@ const { ErrorEmbed, PolicyEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("privacypolicy")
         .setDescription('Get the bot\'s privacy policy')

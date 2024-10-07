@@ -6,6 +6,7 @@ const { fetchCommandCount } = require('../../utils/registerCommands');
 const axios = require('axios');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('stats')
         .setDescription(`Get information about dyLcore`)

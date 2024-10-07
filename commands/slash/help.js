@@ -3,9 +3,12 @@ const { ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription('Get a list of commands')
+        .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
         .addStringOption(option => option
             .setName('command')
             .setDescription('The specific command')

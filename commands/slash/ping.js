@@ -3,6 +3,7 @@ const { PingEmbed, LoadingPingEmbed, ErrorEmbed } = require('../../utils/embeds'
 const { CommandError } = require("../../utils/logging");
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('ping')
         .setDescription('Get the bot\'s ping')

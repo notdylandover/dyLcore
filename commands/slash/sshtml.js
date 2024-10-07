@@ -5,6 +5,7 @@ const { CommandError } = require("../../utils/logging");
 const puppeteer = require('puppeteer');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("sshtml")
         .setDescription("Generate a screenshot of provided HTML code")

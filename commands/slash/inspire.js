@@ -3,6 +3,7 @@ const { ErrorEmbed, InspireEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("inspire")
         .setDescription('Generate an inspirational image')

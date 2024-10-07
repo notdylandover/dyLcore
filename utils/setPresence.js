@@ -7,7 +7,7 @@ require('dotenv').config();
 // Discord Android
 // null = Discord Desktop 
 
-identifyProperties.browser = 'Discord iOS';
+identifyProperties.browser = 'Discord Desktop';
 
 // 0 - Playing
 // 1 - Streaming

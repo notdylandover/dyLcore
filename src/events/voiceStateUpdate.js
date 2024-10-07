@@ -113,7 +113,7 @@ module.exports = {
                     const maxBitrate = newState.guild.voiceStates.size >= 10 ? 384000 : 96000;
 
                     const newChannel = await newState.guild.channels.create({
-                        name: `${member.user.username}'s Room`,
+                        name: `${member.user.displayName}'s Room`,
                         type: ChannelType.GuildVoice,
                         parent: newState.channel.parent,
                         bitrate: maxBitrate,

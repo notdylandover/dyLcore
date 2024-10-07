@@ -1,19 +1,21 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed, FileEmbed } = require("../../utils/embeds");
+const { PremiumFileEmbed } = require("../../utils/PremiumEmbeds");
 const { CommandError, DebugNoDB, Error } = require("../../utils/logging");
 const { exec } = require('child_process');
-
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
 module.exports = {
+    premium: true,
     data: new ContextMenuCommandBuilder()
-        .setName("Process Audio with Demucs")
+        .setName("Split Audio with Demucs")
         .setType(ApplicationCommandType.Message)
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
         .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
         .setDefaultMemberPermissions(PermissionFlagsBits.AttachFiles),
+    
     async execute(interaction) {
         let filePath;
         let tempDir;
@@ -36,7 +38,6 @@ module.exports = {
             }
 
             const audioUrl = audioUrls[0];
-
             const fileName = `temp-${interaction.id}.mp3`;
             tempDir = path.join(__dirname, '..', '..', 'temp');
             filePath = path.join(tempDir, fileName);
@@ -81,7 +82,7 @@ module.exports = {
 
                 const stopTime = Date.now();
                 const timeTook = (stopTime - startTime) / 1000;
-                const fileEmbed = FileEmbed(timeTook.toFixed(2));
+                const fileEmbed = PremiumFileEmbed(timeTook.toFixed(2));
 
                 await interaction.editReply({
                     embeds: [fileEmbed],
@@ -123,7 +124,6 @@ module.exports = {
     }
 };
 
-// Helper function to extract all MP3 URLs from the content
 function extractAudioUrls(content) {
     const urlRegex = /(https?:\/\/[^\s]+\.mp3)/gi;
     return content.match(urlRegex) || [];

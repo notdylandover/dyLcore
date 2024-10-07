@@ -7,7 +7,6 @@ require('dotenv').config();
 const applicationId = process.env.APPID;
 const botToken = process.env.TOKEN;
 
-// Load all of our local emoji files
 const emojiDirectory = path.join(__dirname, '..', 'data', 'bot', 'emojis');
 const localFiles = fs.readdirSync(emojiDirectory).map(file => ({
     name: path.basename(file, path.extname(file)),
@@ -21,7 +20,7 @@ async function getCurrentEmoji() {
                 Authorization: `Bot ${botToken}`
             }
         });
-        return response.data.items;  // Access the items array
+        return response.data.items;
     } catch (error) {
         if (error.response) {
             Error('Error response:', error.response.data);

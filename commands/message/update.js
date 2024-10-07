@@ -7,16 +7,32 @@ module.exports = {
     name: 'update',
     async execute(message) {
         try {
-            const updatedLibraries = await updateLibraries();
-            const libraryUpdatesEmbed = DoneEmbed(`Finished library updates to the host\n${updatedLibraries}`);
+            const args = message.content.split(' ').slice(1); // Extract command arguments
 
-            const updateMessage = await message.reply({ embeds: [libraryUpdatesEmbed], allowedMentions: { repliedUser: false }});
+            const responses = [];
 
-            await updateEmojis();
-            const emojiUpdatesEmbed = DoneEmbed(`Finished emoji updates to the client.`);
+            if (args.includes('libraries')) {
+                message.channel.sendTyping();
 
-            await updateMessage.edit({ embeds: [libraryUpdatesEmbed, emojiUpdatesEmbed], allowedMentions: { repliedUser: false }});
-            
+                const updatedLibraries = await updateLibraries();
+                const libraryUpdatesEmbed = DoneEmbed(`Finished library updates to the host\n${updatedLibraries}`);
+                responses.push(libraryUpdatesEmbed);
+            }
+
+            if (args.includes('emojis')) {
+                message.channel.sendTyping();
+
+                await updateEmojis();
+                const emojiUpdatesEmbed = DoneEmbed(`Finished emoji updates to the client.`);
+                responses.push(emojiUpdatesEmbed);
+            }
+
+            if (responses.length > 0) {
+                await message.reply({ embeds: responses, allowedMentions: { repliedUser: false } });
+            } else {
+                await message.reply("No updates were requested. Please specify 'libraries' or 'emojis'.");
+            }
+
             message.client.destroy();
             return process.exit(0);
         } catch (error) {

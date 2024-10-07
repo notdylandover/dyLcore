@@ -4,6 +4,7 @@ const { Error, CommandError } = require("../../utils/logging");
 const { EMOJIS } = require("../../utils/constants");
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("user")
         .setDescription("Get user details")

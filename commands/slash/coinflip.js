@@ -3,6 +3,7 @@ const { ErrorEmbed, CoinflipEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('coinflip')
         .setDescription('Flip a coin')

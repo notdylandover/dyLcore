@@ -16,6 +16,7 @@ if (!fs.existsSync(tempDir)) {
 const execPromise = util.promisify(exec);
 
 module.exports = {
+    premium: false,
     data: new ContextMenuCommandBuilder()
         .setName("Convert to MP3")
         .setType(ApplicationCommandType.Message)

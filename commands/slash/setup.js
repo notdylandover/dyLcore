@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('setup')
         .setDescription('Manage setup for Join to Create VC feature')

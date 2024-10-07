@@ -5,6 +5,7 @@ const { Error, CommandError } = require("../../utils/logging");
 const compileCode = require('../../utils/codeCompiler');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("exec")
         .setDescription('Execute provided code')

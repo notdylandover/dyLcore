@@ -26,6 +26,7 @@ function getColorHex(colorName) {
 }
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("qr")
         .setDescription('Convert a link to a QR code')

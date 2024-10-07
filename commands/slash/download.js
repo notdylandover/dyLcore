@@ -11,6 +11,7 @@ const MAX_FILE_SIZE_MB = 25;
 const MAX_DURATION_SECONDS = 600;
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("download")
         .setDescription('Download the video or audio from YouTube')

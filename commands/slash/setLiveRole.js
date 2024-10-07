@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("setliverole")
         .setDescription('Set the role to give to users when they go live')

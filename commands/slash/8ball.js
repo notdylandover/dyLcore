@@ -4,6 +4,7 @@ const { CommandError } = require('../../utils/logging');
 const { EIGHTBALL } = require('../../utils/constants');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('8ball')
         .setDescription('Ask the 8ball a question')

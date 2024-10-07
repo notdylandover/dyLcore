@@ -49,7 +49,6 @@ module.exports = {
 
             const lastPresence = lastStatus.get(userId) || { status: null, activityText: null };
 
-            // Handle status change
             if (oldStatus !== newStatus) {
                 let statusSymbol = '⬤';
                 let statusColor = '';
@@ -78,7 +77,6 @@ module.exports = {
                 lastStatus.set(userId, { status: newStatus, activityText: lastPresence.activityText });
             }
 
-            // Handle activity change
             if (!activitiesAreEqual(oldActivity, newActivity)) {
                 if (newActivity && newActivity.length > 0) {
                     const presenceData = {
@@ -96,7 +94,6 @@ module.exports = {
                         return details;
                     }).join(', ');
 
-                    // Only update presence if the activity text has changed
                     if (lastPresence.activityText !== activityText) {
                         presenceUpdate(`${username} ${activityText}`);
                         lastStatus.set(userId, { status: lastPresence.status, activityText });

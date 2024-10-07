@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('removeeventlog')
         .setDescription('Remove the channel where event logs are sent')

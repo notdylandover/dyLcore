@@ -7,7 +7,8 @@ module.exports = {
             const botMessage = message.content.split(' ').slice(1).join(' ');
 
             if (!botMessage) {
-                return message.reply('Please provide a message to send as the bot.');
+                const warnEmbed = WarnEmbed('Please provide a message to send as the bot.');
+                return message.reply({ embeds: [warnEmbed], allowedMentions: { repliedUser: false }});
             }
             
             message.delete();

@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 
 module.exports = {
+    premium: false,
     data: new ContextMenuCommandBuilder()
         .setName('OCR')
         .setType(ApplicationCommandType.Message)

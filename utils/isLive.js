@@ -80,7 +80,7 @@ async function getUserProfile(userLogin, token) {
 
         return response.data.data[0];
     } catch (error) {
-        Error(`Error fetching user profile:\n${error.message}`);
+        Error(`Error fetching user profile for ${userLogin}: ${error.message}`);
         throw error;
     }
 }

@@ -199,6 +199,21 @@ module.exports.emojiUpdate = function (m) {
     dbOutput('Emoji Updated', m);
 };
 
+module.exports.entitlementCreate = function (m) {
+    info(m, colors.green);
+    dbOutput('Entitlement Created', m);
+};
+
+module.exports.entitlementDelete = function (m) {
+    info(m, colors.red);
+    dbOutput('Entitlement Deleted', m);
+};
+
+module.exports.entitlementUpdate = function (m) {
+    info(m, colors.yellow);
+    dbOutput('Entitlement Updated', m);
+};
+
 module.exports.guildAuditLogEntryCreate = function (m) {
     info(m, colors.grey);
 };

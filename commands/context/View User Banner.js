@@ -3,6 +3,7 @@ const { MediaEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
 module.exports = {
+    premium: false,
     data: new ContextMenuCommandBuilder()
         .setName("View User Banner")
         .setType(ApplicationCommandType.User)

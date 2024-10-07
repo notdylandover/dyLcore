@@ -9,6 +9,7 @@ const axios = require('axios');
 const sharp = require('sharp');
 
 module.exports = {
+    premium: false,
     data: new ContextMenuCommandBuilder()
         .setName("Make It A Quote")
         .setType(ApplicationCommandType.Message)

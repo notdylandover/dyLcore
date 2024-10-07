@@ -1,4 +1,4 @@
-const { messageUpdate, Error } = require('../../utils/logging');
+const { messageUpdate, Error, Debug } = require('../../utils/logging');
 
 module.exports = {
     name: 'messageUpdate',
@@ -10,17 +10,18 @@ module.exports = {
             let server = newMessage.guild ? newMessage.guild.name : "Direct Message";
             let channel = newMessage.channel ? newMessage.channel.name : "Direct Message";
             let globalUsername = newMessage.author.tag;
-            let oldmessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : " ";
-            let newmessageContent = newMessage.content.replace(/[\r\n]+/g, ' ');
 
-            // Ignore bot messages
             if (oldMessage.author.bot) {
                 return;
             }
 
-            // Check if the message content hasn't changed and only embeds were added/updated
+            Debug(`${server} - ${channel} - ${globalUsername}`);
+
+            let oldmessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : " ";
+            let newmessageContent = newMessage ? newMessage.content.replace(/[\r\n]+/g, ' ') : " ";
+
             if (oldmessageContent === newmessageContent && oldMessage.embeds.length !== newMessage.embeds.length) {
-                return; // Skip logging if only embeds have changed
+                return;
             }
 
             if (oldMessage.embeds.length > 0) {

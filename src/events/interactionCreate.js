@@ -1,6 +1,7 @@
 const { Error, interactionCreate } = require('../../utils/logging');
 const { ErrorEmbed, SuccessEmbedRemodal } = require('../../utils/embeds');
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const { getUserEntitlement } = require('../../utils/entitlement');
 
 const fs = require('fs');
 const path = require('path');
@@ -20,16 +21,36 @@ module.exports = {
                     ? interaction.options.data.map(option => `${option.name}: ${option.value}`).join(', ')
                     : '';
                 const commandFilePath = path.join(__dirname, '..', '..', 'commands', 'slash', `${commandName}.js`);
-
+            
                 try {
                     const command = require(commandFilePath);
+            
+                    if (command.premium) {
+                        const username = interaction.user.username;
+                        const entitlement = await getUserEntitlement(username);
+                        
+                        const testingFilePath = path.join(__dirname, '..', '..', 'data', 'testing.json');
+                        let isTestingUser = false;
+            
+                        if (fs.existsSync(testingFilePath)) {
+                            const fileContent = fs.readFileSync(testingFilePath, 'utf-8');
+                            const usersData = JSON.parse(fileContent);
+                            isTestingUser = usersData.users.includes(username);
+                        }
+            
+                        if (!isTestingUser && (!entitlement || !entitlement.skus || entitlement.skus.length === 0)) {
+                            const errorEmbed = ErrorEmbed('You do not have access to this premium command.');
+                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        }
+                    }
+            
                     interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - /${commandName.magenta} ${commandContent.magenta}`);
                     await command.execute(interaction);
                 } catch (error) {
                     Error(`Error executing slash command ${commandName}:\n${error.stack}`);
-
+            
                     const errorEmbed = ErrorEmbed(error.message);
-
+            
                     if (interaction.deferred || interaction.replied) {
                         await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
                     } else {
@@ -39,16 +60,36 @@ module.exports = {
             } else if (interaction.isContextMenuCommand()) {
                 const commandName = interaction.commandName;
                 const commandFilePath = path.join(__dirname, '..', '..', 'commands', 'context', `${commandName}.js`);
-
+            
                 try {
                     const command = require(commandFilePath);
+            
+                    if (command.premium) {
+                        const username = interaction.user.username;
+                        const entitlement = await getUserEntitlement(username);
+                        
+                        const testingFilePath = path.join(__dirname, '..', '..', 'data', 'testing.json');
+                        let isTestingUser = false;
+            
+                        if (fs.existsSync(testingFilePath)) {
+                            const fileContent = fs.readFileSync(testingFilePath, 'utf-8');
+                            const usersData = JSON.parse(fileContent);
+                            isTestingUser = usersData.users.includes(username);
+                        }
+            
+                        if (!isTestingUser && (!entitlement || !entitlement.skus || entitlement.skus.length === 0)) {
+                            const errorEmbed = ErrorEmbed('You do not have access to this premium command.');
+                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        }
+                    }
+            
                     interactionCreate(`${server.cyan} - ${('#' + channel).cyan} - ${username.cyan} - ${commandName.magenta}`);
                     await command.execute(interaction);
                 } catch (error) {
                     Error(`Error executing context menu command ${commandName}:\n${error.stack}`);
-
+            
                     const errorEmbed = ErrorEmbed(error.message);
-
+            
                     if (interaction.deferred || interaction.replied) {
                         await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
                     } else {

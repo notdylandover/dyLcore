@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
+    premium: false,
     data: new SlashCommandBuilder()
         .setName("setlivechannel")
         .setDescription('Set the channel to send live notifications to')
