@@ -3,7 +3,7 @@ const { ErrorEmbed } = require('../../utils/embeds');
 const { PremiumWeatherEmbed } = require('../../utils/PremiumEmbeds');
 const { CommandError, Debug } = require("../../utils/logging");
 const { EMOJIS } = require('../../utils/constants');
-const { getForecastIcon, getNearestForecastOffice, getTimeZone, getWeatherAlerts, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji, getForecastZone } = require('../../utils/weather');
+const { getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji } = require('../../utils/weather');
 
 module.exports = {
     premium: true,
@@ -33,9 +33,9 @@ module.exports = {
             const emojiIdMatch = currentWeatherEmoji.match(/:(\d+)>/);
             const emojiId = emojiIdMatch ? emojiIdMatch[1] : null;
             const currentConditionEmoji = emojiId ? `https://cdn.discordapp.com/emojis/${emojiId}.png` : null;
+            const zoneData = await getZoneData(zip);
 
             const icon = await getForecastIcon(weeklyForecast);
-            const hourlyForecast = await getHourlyForecast(forecastProperties.forecastHourly);
             const forecastZone = await getForecastZone(zip);
             const radar = await getRadarImage(forecastProperties.radarStation);
             const timeZone = await getTimeZone(zip);
@@ -75,8 +75,10 @@ module.exports = {
             upcomingDays.forEach(date => {
                 const { high, low, condition } = dailyData[date];
 
-                const highDisplay = high !== null ? `${high}°F` : '  ';
-                const lowDisplay = low !== null ? `${low}°F` : '  ';
+                Debug(condition);
+
+                const highDisplay = high !== null ? `${high}°F` : '    ';
+                const lowDisplay = low !== null ? `${low}°F` : '    ';
 
                 const emoji = getWeatherEmoji(condition);
                 description += `**\` ${date} \`** ${emoji} \` ${highDisplay} / ${lowDisplay} \`\n`;
@@ -84,9 +86,23 @@ module.exports = {
 
             if (alerts.length > 0) {
                 description += '## Alerts\n';
+                
+                const today = new Date().toLocaleDateString('en-US', { timeZone });
+
                 alerts.forEach(alert => {
-                    const expiresDate = new Date(alert.expires).toLocaleString('en-US', { timeZone });
-                    description += `-# ${EMOJIS.weather_alert} ${alert.event} until ${expiresDate}\n`;
+                    const expires = new Date(alert.expires);
+                    const isToday = expires.toLocaleDateString('en-US', { timeZone }) === today;
+
+                    const expiresDate = expires.toLocaleString('en-US', {
+                        timeZone,
+                        hour: 'numeric', 
+                        minute: 'numeric',
+                        ...(isToday ? {} : { weekday: 'short' })
+                    });
+
+                    const learnMoreUrl = generateAlertURL(zoneData.forecastZone, zoneData.county, zoneData.lat, zoneData.lon, `${city}, ${state}`);
+                    
+                    description += `${EMOJIS.weather_alert} ${alert.event}\n-# Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
                 });
             } else {
                 description += '';

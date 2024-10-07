@@ -1,6 +1,7 @@
 const { EMOJIS } = require('./constants');
 
 const axios = require('axios');
+const { Debug } = require('./logging');
 
 require('dotenv').config();
 
@@ -47,6 +48,8 @@ async function getForecastZone(zip) {
     const coordinates = await getCoordinates(zip);
     const url = `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}`;
 
+    Debug(url);
+
     try {
         const response = await axios.get(url);
         const forecastZone = response.data.properties.forecastZone;
@@ -56,6 +59,30 @@ async function getForecastZone(zip) {
         throw new Error(error.message);
     }
 }
+
+async function getZoneData(zip) {
+    const coordinates = await getCoordinates(zip);
+    const url = `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}`;
+
+    Debug(`Fetching zone data from: ${url}`);
+
+    try {
+        const response = await axios.get(url);
+        const forecastZoneUrl = response.data.properties.forecastZone;
+        const countyUrl = response.data.properties.county;
+        const fireWeatherZoneUrl = response.data.properties.fireWeatherZone;
+
+        // Extract zone identifiers from the URLs (e.g., "FLZ045", "FLC095")
+        const forecastZone = forecastZoneUrl.split('/').pop();
+        const county = countyUrl.split('/').pop();
+        const fireWeatherZone = fireWeatherZoneUrl.split('/').pop();
+
+        return { forecastZone, county, fireWeatherZone, lat: coordinates.latitude, lon: coordinates.longitude };
+    } catch (error) {
+        throw new Error(`Failed to fetch zone data: ${error.message}`);
+    }
+}
+
 
 async function getTimeZone(zip) {
     const coordinates = await getCoordinates(zip); // Assuming this function retrieves coordinates based on ZIP
@@ -93,6 +120,10 @@ async function getWeatherAlerts(state, forecastZone) {
     }
 }
 
+function generateAlertURL(warnzone, warncounty, lat, lon, place) {
+    return `https://forecast.weather.gov/showsigwx.php?warnzone=${warnzone}&warncounty=${warncounty}&firewxzone=${warnzone}&local_place1=${encodeURIComponent(place)}&lat=${lat}&lon=${lon}`;
+}
+
 async function getWeeklyForecast(forecastUrl) {
     try {
         const response = await axios.get(forecastUrl);
@@ -100,7 +131,7 @@ async function getWeeklyForecast(forecastUrl) {
 
         return periods.map(period => {
             let cleanedCondition = period.shortForecast
-                .replace(/\b(chance|possible|scattered|conditions|slight|likely)\b/gi, '')
+                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated)\b/gi, '')
                 .replace(/chance of \w+/i, '')
                 .replace(/then.*/i, '') 
                 .trim();
@@ -142,6 +173,7 @@ async function getRadarImage(office) {
 
 function getWeatherEmoji(condition) {
     const weatherEmojis = {
+        'Clear': `${EMOJIS.weather_sun}`,
         'Mostly Clear': `${EMOJIS.weather_sun}`,
         'Sunny': `${EMOJIS.weather_sun}`,
         'Mostly Sunny': `${EMOJIS.weather_sun}`,
@@ -154,4 +186,4 @@ function getWeatherEmoji(condition) {
     return weatherEmojis[condition] || '🌈';
 }
 
-module.exports = { getForecastIcon, getNearestForecastOffice, getForecastZone, getTimeZone, getWeatherAlerts, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji };
+module.exports = { getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji };
