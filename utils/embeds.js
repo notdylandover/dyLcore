@@ -3,6 +3,24 @@ const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
+module.exports.WeatherEmbed = function(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setAuthor({
+            name: `${currentCondition}`,
+            iconURL: currentConditionEmoji
+        })
+        .setTitle(`${currentTemperature}°F in ${location}`)
+        .setThumbnail(icon)
+        .setDescription(description)
+        .setImage(radar)
+        .setTimestamp()
+        .setFooter({
+            iconURL: LINKS.brand,
+            text: `${TEXT.brand} • NWS`
+        });
+};
+
 module.exports.JoinToCreateVC = function() {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)

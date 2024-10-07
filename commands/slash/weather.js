@@ -1,12 +1,11 @@
 const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
-const { ErrorEmbed } = require('../../utils/embeds');
-const { PremiumWeatherEmbed } = require('../../utils/PremiumEmbeds');
+const { ErrorEmbed, WeatherEmbed } = require('../../utils/embeds');
 const { CommandError, Debug } = require("../../utils/logging");
 const { EMOJIS } = require('../../utils/constants');
 const { getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji } = require('../../utils/weather');
 
 module.exports = {
-    premium: true,
+    premium: false,
     data: new SlashCommandBuilder()
         .setName('weather')
         .setDescription('Get the weather for a specific location by ZIP code')
@@ -108,7 +107,7 @@ module.exports = {
                 description += '';
             }
     
-            const embed = PremiumWeatherEmbed(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar);
+            const embed = WeatherEmbed(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar);
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {

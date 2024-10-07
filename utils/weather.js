@@ -1,7 +1,6 @@
 const { EMOJIS } = require('./constants');
 
 const axios = require('axios');
-const { Debug } = require('./logging');
 
 require('dotenv').config();
 
@@ -48,8 +47,6 @@ async function getForecastZone(zip) {
     const coordinates = await getCoordinates(zip);
     const url = `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}`;
 
-    Debug(url);
-
     try {
         const response = await axios.get(url);
         const forecastZone = response.data.properties.forecastZone;
@@ -64,15 +61,12 @@ async function getZoneData(zip) {
     const coordinates = await getCoordinates(zip);
     const url = `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}`;
 
-    Debug(`Fetching zone data from: ${url}`);
-
     try {
         const response = await axios.get(url);
         const forecastZoneUrl = response.data.properties.forecastZone;
         const countyUrl = response.data.properties.county;
         const fireWeatherZoneUrl = response.data.properties.fireWeatherZone;
 
-        // Extract zone identifiers from the URLs (e.g., "FLZ045", "FLC095")
         const forecastZone = forecastZoneUrl.split('/').pop();
         const county = countyUrl.split('/').pop();
         const fireWeatherZone = fireWeatherZoneUrl.split('/').pop();
@@ -85,12 +79,12 @@ async function getZoneData(zip) {
 
 
 async function getTimeZone(zip) {
-    const coordinates = await getCoordinates(zip); // Assuming this function retrieves coordinates based on ZIP
+    const coordinates = await getCoordinates(zip);
     const url = `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}`;
 
     try {
         const response = await axios.get(url);
-        return response.data.properties.timeZone; // Extract the time zone
+        return response.data.properties.timeZone;
     } catch (error) {
         throw new Error('Failed to retrieve time zone: ' + error.message);
     }
