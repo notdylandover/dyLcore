@@ -125,7 +125,7 @@ async function getWeeklyForecast(forecastUrl) {
 
         return periods.map(period => {
             let cleanedCondition = period.shortForecast
-                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated)\b/gi, '')
+                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated|expected with)\b/gi, '')
                 .replace(/chance of \w+/i, '')
                 .replace(/then.*/i, '') 
                 .trim();
@@ -174,6 +174,7 @@ function getWeatherEmoji(condition) {
         'Rain Showers': `${EMOJIS.weather_rain}`,
         'Showers And Thunderstorms': `${EMOJIS.weather_thunderstorm}`,
         'Tropical Storm': `${EMOJIS.weather_tropicalstorm}`,
+        'Tropical Storm Hurricane': `${EMOJIS.weather_hurricane}`,
         'Hurricane': `${EMOJIS.weather_hurricane}`,
     };
 

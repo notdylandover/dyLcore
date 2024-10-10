@@ -1,4 +1,4 @@
-const { autoModerationActionExecutionLog } = require('../../utils/logging');
+const { autoModerationActionExecution } = require('../../utils/logging');
 
 module.exports = {
     name: 'autoModerationActionExecution',
@@ -31,6 +31,6 @@ module.exports = {
             actionType = 'Unknown';
         }
 
-        autoModerationActionExecutionLog(`${guild.bgRed} - ${('#' + channel.name).bgRed} - ${user.username.bgRed} - ${content.bgRed} ${('(' + actionType + ')').black}`);
+        autoModerationActionExecution(`${guild.bgRed} - ${('#' + channel.name).bgRed} - ${user.username.bgRed} - ${content.bgRed} ${('(' + actionType + ')').black}`);
     }
 };

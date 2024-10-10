@@ -111,9 +111,12 @@ module.exports = {
 
                 if (action === 'Joined' && newState.channel && newState.channel.id === settings.joinToCreateVC) {
                     const maxBitrate = newState.guild.voiceStates.size >= 10 ? 384000 : 96000;
+                    const displayName = member.displayName || member.user.username;
+
+                    Debug(displayName);
 
                     const newChannel = await newState.guild.channels.create({
-                        name: `${member.user.displayName}'s Room`,
+                        name: `${displayName}'s Room`,
                         type: ChannelType.GuildVoice,
                         parent: newState.channel.parent,
                         bitrate: maxBitrate,

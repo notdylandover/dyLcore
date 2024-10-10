@@ -1,4 +1,8 @@
 const { messageUpdate, Error, Debug } = require('../../utils/logging');
+const { messageUpdateAlert } = require('../../utils/alertEmbeds');
+
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
     name: 'messageUpdate',
@@ -7,32 +11,62 @@ module.exports = {
             if (newMessage.partial) await newMessage.fetch();
             if (oldMessage.partial) await oldMessage.fetch();
 
-            let server = newMessage.guild ? newMessage.guild.name : "Direct Message";
-            let channel = newMessage.channel ? newMessage.channel.name : "Direct Message";
+            if (newMessage.author && newMessage.author.bot) {
+                return;
+            }
+
+            let serverName = newMessage.guild ? newMessage.guild.name : "Direct Message";
+            let channelId = newMessage.channel ? newMessage.channel.id : null;
+            let channelName = newMessage.channel ? newMessage.channel.name : "Direct Message";
             let globalUsername = newMessage.author.tag;
+            let authorAvatar = newMessage.author ? newMessage.author.displayAvatarURL() : newMessage.author.defaultAvatarURL();
 
-            if (oldMessage.author.bot) {
-                return;
-            }
+            Debug(`${serverName} - ${channelName} - ${globalUsername}`);
 
-            Debug(`${server} - ${channel} - ${globalUsername}`);
-
-            let oldmessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : " ";
-            let newmessageContent = newMessage ? newMessage.content.replace(/[\r\n]+/g, ' ') : " ";
-
-            if (oldmessageContent === newmessageContent && oldMessage.embeds.length !== newMessage.embeds.length) {
-                return;
-            }
+            let oldMessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : "[No Content]";
+            let newMessageContent = newMessage ? newMessage.content.replace(/[\r\n]+/g, ' ') : "[No Content]";
 
             if (oldMessage.embeds.length > 0) {
-                oldmessageContent += ' EMBED '.bgYellow.black;
+                oldMessageContent += ' EMBED ';
             }
-
             if (newMessage.embeds.length > 0) {
-                newmessageContent += ' EMBED '.bgYellow.black;
+                newMessageContent += ' EMBED ';
             }
 
-            messageUpdate(`${server.cyan} - ${('#' + channel).cyan} - ${globalUsername.cyan} - ${oldmessageContent} -> ${newmessageContent.green} (Updated)`);
+            if (oldMessageContent === newMessageContent && oldMessage.embeds.length === newMessage.embeds.length) {
+                return;
+            }
+
+            let attachmentNote = '';
+
+            if (oldMessage.attachments.size > 0) {
+                attachmentNote = '\n-# This message had attachments.';
+            }
+
+            if (newMessage.attachments.size > 0) {
+                attachmentNote += '\n-# This message has attachments.';
+            }
+
+            messageUpdate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${globalUsername.cyan} - ${oldMessageContent} -> ${newMessageContent.green} (Updated)`);
+
+            const guildId = newMessage.guild.id;
+            const settingsFilePath = path.resolve(__dirname, `../../data/servers/${guildId}.json`);
+
+            if (!fs.existsSync(settingsFilePath)) {
+                return;
+            }
+
+            const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
+            const alertsChannelId = settings.alertsChannel;
+
+            if (alertsChannelId) {
+                const alertsChannel = newMessage.guild.channels.cache.get(alertsChannelId);
+                
+                if (alertsChannel) {
+                    const embed = messageUpdateAlert(channelId, authorAvatar, globalUsername, oldMessageContent, newMessageContent, attachmentNote);
+                    await alertsChannel.send({ embeds: [embed] });
+                }
+            }
         } catch (error) {
             Error(`Error executing ${module.exports.name}:\n${error.stack}`);
         }

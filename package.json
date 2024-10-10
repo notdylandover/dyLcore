@@ -1,6 +1,7 @@
 {
     "dependencies": {
         "@discordjs/voice": "^0.17.0",
+        "@discordjs/ws": "^2.0.0",
         "@distube/ytdl-core": "^4.14.4",
         "@google-cloud/vision": "^4.3.2",
         "@types/axios": "^0.14.0",

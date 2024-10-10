@@ -11,19 +11,10 @@ module.exports = async function getBotInfo(client) {
     if (!fs.existsSync(userDir)) {
         fs.mkdirSync(userDir, { recursive: true });
     }
+    
     if (!fs.existsSync(mediaDir)) {
         fs.mkdirSync(mediaDir, { recursive: true });
     }
-
-    const botInfo = {
-        id: botUser.id,
-        username: botUser.username,
-        discriminator: botUser.discriminator,
-        avatar: botUser.displayAvatarURL(),
-        banner: botUser.bannerURL()
-    };
-
-    fs.writeFileSync(path.join(userDir, `${username}.json`), JSON.stringify(botInfo, null, 2));
 
     if (botUser.avatar) {
         const avatarUrl = botUser.displayAvatarURL({ format: 'png', size: 1024 });

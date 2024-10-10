@@ -11,22 +11,4 @@ module.exports.PremiumFileEmbed = function(timeTook) {
             iconURL: LINKS.premium,
             text: TEXT.premium
         })
-}
-
-module.exports.PremiumWeatherEmbed = function(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.default)
-        .setAuthor({
-            name: `${currentCondition}`,
-            iconURL: currentConditionEmoji
-        })
-        .setTitle(`${currentTemperature}°F in ${location}`)
-        .setThumbnail(icon)
-        .setDescription(description)
-        .setImage(radar)
-        .setTimestamp()
-        .setFooter({
-            iconURL: LINKS.premium,
-            text: `${TEXT.premium} • NWS`
-        });
 };

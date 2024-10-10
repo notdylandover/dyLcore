@@ -1,7 +1,8 @@
+const { userUpdate } = require('../../utils/logging');
+
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const { userUpdate } = require('../../utils/logging');
 
 module.exports = {
     name: 'userUpdate',
@@ -18,7 +19,6 @@ module.exports = {
             fs.mkdirSync(mediaDir);
         }
 
-        // Update avatar
         if (oldUser.avatar !== newUser.avatar) {
             changes.push(`${username} updated their avatar`);
             const avatarUrl = newUser.displayAvatarURL({ format: 'png', size: 1024 });
@@ -26,7 +26,6 @@ module.exports = {
             await downloadFile(avatarUrl, avatarPath);
         }
 
-        // Update banner
         if (oldUser.banner !== newUser.banner) {
             changes.push(`${username} updated their banner`);
             const bannerUrl = newUser.bannerURL({ format: 'png', size: 1024 });
@@ -34,7 +33,6 @@ module.exports = {
             await downloadFile(bannerUrl, bannerPath);
         }
 
-        // Track other changes
         if (oldUser.displayName !== newUser.displayName) {
             changes.push(`${username} changed their display name: ${oldUser.displayName} → ${newUser.displayName}`);
         }
@@ -53,7 +51,6 @@ module.exports = {
     }
 };
 
-// Helper function to download files
 const downloadFile = async (url, outputPath) => {
     const writer = fs.createWriteStream(outputPath);
     const response = await axios({
