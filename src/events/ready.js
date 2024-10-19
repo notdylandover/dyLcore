@@ -20,7 +20,8 @@ const channels = [
     'crumbdumbster',
     'not_dyLn',
     'nerdyc160',
-    'wotuh'
+    'wotuh',
+    'tbucket2314'
 ];
 
 module.exports = {
@@ -31,12 +32,13 @@ module.exports = {
             await getBotInfo(client);
             await fetchAllEntitlements(client);
             await registerCommands(client);
-            fetchGameUpdates();
 
-            cron.schedule("*/15 * * * * *", async () => {
+            await fetchGameUpdates(client);
+
+            cron.schedule("*/10 * * * * *", async () => {
                 await isLive(client, channels);
-                setPresence(client);
-                fetchGameUpdates();
+                await setPresence(client);
+                await fetchGameUpdates(client);
             });
         } catch (error) {
             return Error(`Error executing ${module.exports.name}:\n${error.stack}`);

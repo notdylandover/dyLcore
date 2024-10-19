@@ -1,6 +1,5 @@
 const { attachmentDownload, messageCreate, Error, interactionCreate } = require("../../utils/logging");
 const { analyzeLabels } = require("../../utils/analyzeImage");
-
 const fs = require("fs");
 const path = require("path");
 
@@ -34,69 +33,78 @@ module.exports = {
         try {
             const serverName = message.guild ? message.guild.name : "Direct Message";
             const channelName = message.channel && message.channel.name ? message.channel.name : "Direct Message";
-
+            const guildId = message.guild ? message.guild.id : null;
             const allowedUserId = process.env.OWNERID;
             const commandPrefix = process.env.PREFIX;
-
+            
             let authorFlags = message.author?.flags;
             let authorUsername = message.author ? message.author.username : "Unknown User";
-
             let messageContent = message.content.replace(/[\r\n]+/g, " ");
 
-            try {
-                if (message.author && message.author.id === allowedUserId) {
-                    if (messageContent.startsWith(commandPrefix)) {
-                        const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
-                        const command = messageCommands.get(commandName);
-                        interactionCreate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent.magenta}`);
+            if (guildId === null) {
+                return messageCreate(`${`DM`.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
+            }
 
-                        if (command) {
-                            return await command.execute(message);
-                        } else {
-                            message.react('❔');
-                        }
+            const serverDataPath = path.join(__dirname, '..', '..', 'data', 'servers', `${guildId}.json`);
+            const serverData = JSON.parse(fs.readFileSync(serverDataPath, 'utf-8'));
+
+            if (!serverData.activeTickets) {
+                serverData.activeTickets = {};
+            }
+
+            if (serverData.activeTickets[message.channel.id]) {
+                const ticket = serverData.activeTickets[message.channel.id];
+
+                if (ticket.subject && ticket.description && ticket.priority) {
+                    ticket.messages.push({ content: messageContent, author: authorUsername, timestamp: message.createdTimestamp });
+                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+                    return;
+                }
+
+                if (!ticket.subject) {
+                    ticket.subject = messageContent;
+                    message.reply("Thank you! Now, please provide a detailed description of your issue.");
+                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+                    return;
+                }
+
+                if (!ticket.description) {
+                    ticket.description = messageContent;
+                    message.reply("Got it! Please set the priority (Low, Medium, High, Critical).");
+                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+                    return;
+                }
+
+                if (!ticket.priority) {
+                    const priority = ["low", "medium", "high", "critical"].find(p => p.toLowerCase() === message.content.toLowerCase());
+                    if (!priority) {
+                        message.reply("Please enter a valid priority: Low, Medium, High, or Critical.");
+                        return;
+                    }
+                    ticket.priority = priority;
+                    ticket.status = "Created";
+                    ticket.messages.push({ content: messageContent, author: authorUsername, timestamp: message.createdTimestamp });
+                    message.reply("Thank you! Your ticket has been created successfully.");
+                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+                    return;
+                }
+            }
+
+            if (message.author && message.author.id === allowedUserId) {
+                if (messageContent.startsWith(commandPrefix)) {
+                    const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
+                    const command = messageCommands.get(commandName);
+                    interactionCreate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent.magenta}`);
+
+                    if (command) {
+                        return await command.execute(message);
+                    } else {
+                        message.react('❔');
                     }
                 }
-            } catch (error) {
-                Error(`Error processing owner commands:\n${error.stack}`);
             }
 
-            try {
-                if (message.embeds.length > 0) {
-                    messageContent += ' EMBED '.bgYellow.black;
-                }
-
-                if (message.poll) {
-                    const pollQuestion = message.poll.question.text.replace(/[\r\n]+/g, " ");
-                    const pollAnswers = message.poll.answers.map(answer => answer.text).join(', ');
-
-                    messageContent += ' POLL '.bgMagenta.black + ` ${pollQuestion.cyan} - ${pollAnswers.cyan} `;
-                }
-
-                if (!message.inGuild()) {
-                    return messageCreate(`${`DM`.magenta} - ${authorUsername.cyan} - ${messageContent.white}`);
-                }
-    
-                if (message.author.system) {
-                    return messageCreate(`${` SYSTEM `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
-                }
-    
-                if (message.author.bot && authorFlags.has('VerifiedBot')) {
-                    return messageCreate(`${` ✓ APP `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
-                }
-    
-                if (message.author.bot && !authorFlags.has('VerifiedBot')) {
-                    return messageCreate(`${` APP `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
-                }
-    
-                if (message.webhookId > 0) {
-                    return messageCreate(`${` WEBHOOK `.bgBlue.white} - ${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
-                }
-
-                messageCreate(`${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
-            } catch (error) {
-                Error(`Error processing message content:\n${error.stack}`);
-            }
+            messageCreate(`${serverName.cyan} - ${"#".cyan + channelName.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
 
             if (message.attachments.size > 0) {
                 try {

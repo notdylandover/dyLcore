@@ -3,6 +3,23 @@ const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
+module.exports.GameUpdateEmbed = function(name, title, url, description, headerImage) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setAuthor({
+            name: `${name}`
+        })
+        .setTitle(title)
+        .setURL(url)
+        .setDescription(description)
+        .setImage(headerImage)
+        .setTimestamp()
+        .setFooter({
+            iconURL: LINKS.brand,
+            text: `${TEXT.brand} • Steam`
+        });
+};
+
 module.exports.WeatherEmbed = function(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)

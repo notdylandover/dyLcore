@@ -1,6 +1,6 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
-const { DiscordJS, Invalid, Error, Warn } = require('../utils/logging');
+const { Debug, DiscordJS, Invalid, Error, Warn } = require('../utils/logging');
 const startServer = require('../utils/server');
 
 const fs = require('fs');
@@ -25,8 +25,14 @@ const verifiedEvents = [];
 const missingEvents = [];
 const invalidEvents = [];
 
-const debugMode = process.env.DEBUG_MODE === 'true';
+const debugMode = process.env.DEBUG_MODE || 'false';
 const debugModePath = path.resolve(__dirname, '..', 'data', 'debugMode.json');
+
+if (debugMode === 'true') {
+    Debug(`Debug mode is enabled`);
+} else {
+    Debug(`Debug mode is disabled`);
+}
 
 let debugConfig = { disabledEvents: [] };
 
