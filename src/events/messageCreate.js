@@ -27,6 +27,16 @@ function loadCommands(dir) {
 
 const messageCommands = loadCommands(path.join(__dirname, '..', '..', 'commands', 'message'));
 
+function updateChannelNameToRequesterResponded(ticketChannel) {
+    const newName = `Ticket - ${ticketChannel.name.split('-').pop().trim()}`;
+    ticketChannel.setName(newName).catch(console.error);
+}
+
+function updateChannelNameToOpen(ticketChannel) {
+    const newName = `Ticket - ${ticketChannel.name.split('-').pop().trim()}`;
+    ticketChannel.setName(newName).catch(console.error);
+}
+
 module.exports = {
     name: "messageCreate",
     async execute(message) {
@@ -37,7 +47,6 @@ module.exports = {
             const allowedUserId = process.env.OWNERID;
             const commandPrefix = process.env.PREFIX;
             
-            let authorFlags = message.author?.flags;
             let authorUsername = message.author ? message.author.username : "Unknown User";
             let messageContent = message.content.replace(/[\r\n]+/g, " ");
 
@@ -58,34 +67,16 @@ module.exports = {
                 if (ticket.subject && ticket.description && ticket.priority) {
                     ticket.messages.push({ content: messageContent, author: authorUsername, timestamp: message.createdTimestamp });
                     fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
-                    return;
-                }
 
-                if (!ticket.subject) {
-                    ticket.subject = messageContent;
-                    message.reply("Thank you! Now, please provide a detailed description of your issue.");
-                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
-                    return;
-                }
+                    const isRequester = message.author.id === ticket.requester.id;
+                    const isModerator = message.member && message.member.roles.cache.has(serverData.ticketModeratorRoleId);
 
-                if (!ticket.description) {
-                    ticket.description = messageContent;
-                    message.reply("Got it! Please set the priority (Low, Medium, High, Critical).");
-                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
-                    return;
-                }
-
-                if (!ticket.priority) {
-                    const priority = ["low", "medium", "high", "critical"].find(p => p.toLowerCase() === message.content.toLowerCase());
-                    if (!priority) {
-                        message.reply("Please enter a valid priority: Low, Medium, High, or Critical.");
-                        return;
+                    if (isRequester) {
+                        updateChannelNameToRequesterResponded(message.channel);
+                    } else if (isModerator) {
+                        updateChannelNameToOpen(message.channel);
                     }
-                    ticket.priority = priority;
-                    ticket.status = "Created";
-                    ticket.messages.push({ content: messageContent, author: authorUsername, timestamp: message.createdTimestamp });
-                    message.reply("Thank you! Your ticket has been created successfully.");
-                    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+                    
                     return;
                 }
             }

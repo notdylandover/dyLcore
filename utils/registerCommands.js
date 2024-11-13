@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { Error } = require('./logging');
+const { Error, Warn, CommandRegisterDone, CommandRegisterFailed, TimestampInfo } = require('./logging');
 
 const fs = require('fs');
 const path = require('path');
@@ -18,6 +18,7 @@ const fetchCommandCount = async (client) => {
 
 const updateCommands = () => {
     const commands = [];
+    const invalidCommands = [];
 
     const commandFolders = ['slash', 'context'];
     commandFolders.forEach(folder => {
@@ -28,13 +29,22 @@ const updateCommands = () => {
 
         for (const file of commandFiles) {
             const commandPath = path.join(commandFolderPath, file);
-            const command = require(commandPath);
+            try {
+                const command = require(commandPath);
 
-            if (command.data && command.execute) {
-                commands.push(command.data.toJSON());
+                if (command.data && typeof command.execute === 'function') {
+                    commands.push(command.data.toJSON());
+                }
+            } catch (error) {
+                invalidCommands.push(file);
+                CommandRegisterFailed(`Error loading command ${file}: ${error.message}`);
             }
         }
     });
+
+    if (invalidCommands.length > 0) {
+        Warn(`Invalid command files:\n${invalidCommands.join('\n')}`);
+    }
 
     return commands;
 };
@@ -44,6 +54,8 @@ const registerCommands = async (client) => {
     const rest = new REST({ version: '10' }).setToken(client.token);
 
     try {
+        TimestampInfo(`Registering ${commands.length} commands...`);
+
         const registeredCommands = await rest.put(Routes.applicationCommands(client.user.id), {
             body: commands,
         });
@@ -58,15 +70,12 @@ const registerCommands = async (client) => {
 
         const commandsFilePath = path.join(__dirname, '..', 'data', 'bot', 'commands.json');
         fs.mkdirSync(path.dirname(commandsFilePath), { recursive: true });
+        fs.writeFileSync(commandsFilePath, JSON.stringify(commandsWithIds, null, 2));
 
-        try {
-            fs.writeFileSync(commandsFilePath, JSON.stringify(commandsWithIds, null, 2));
-        } catch (error) {
-            Error('Failed to write commands data to commands.json:', error);
-        }
+        CommandRegisterDone(`${registeredCommands.length} commands registered`);
     } catch (error) {
-        Error(`Failed to update commands: ${error.message}`);
+        Error('Failed to register commands:', error);
     }
 };
 
-module.exports = { registerCommands, fetchCommandCount };
+module.exports = { fetchCommandCount, registerCommands };

@@ -1,6 +1,6 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { SuccessEmbedRemodal } = require('../../../../utils/embeds');
 
 module.exports = async function handleFeedbackModal(interaction) {
     const feedback = interaction.fields.getTextInputValue('feedbackInput');
@@ -12,25 +12,14 @@ module.exports = async function handleFeedbackModal(interaction) {
 
     if (serverData.activeTickets[ticketChannelId]) {
         serverData.activeTickets[ticketChannelId].feedback = feedback;
-        serverData.activeTickets[ticketChannelId].status = "Closed";
 
         fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
 
-        await interaction.reply({ content: 'Thank you for your feedback!', ephemeral: true });
-
-        try {
-            await interaction.user.send(`Your ticket has been closed. Feedback received: ${feedback}`);
-        } catch (error) {
-            console.error('Failed to send DM:', error);
-        }
-
-        await interaction.channel.send(`Ticket closed. Feedback received: ${feedback}`);
-
         const ticketChannel = interaction.channel;
         const everyoneRole = interaction.guild.roles.everyone;
-        const userRole = interaction.guild.roles.cache.find(role => role.id === interaction.user.id);
+        const userId = interaction.user.id;
 
-        await ticketChannel.permissionOverwrites.edit(userRole, {
+        await ticketChannel.permissionOverwrites.edit(userId, {
             ViewChannel: false,
             SendMessages: false
         });
@@ -38,7 +27,11 @@ module.exports = async function handleFeedbackModal(interaction) {
         await ticketChannel.permissionOverwrites.edit(everyoneRole, {
             ViewChannel: false
         });
+
+        const successEmbed = SuccessEmbedRemodal(`Ticket Closed`);
+        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await ticketChannel.send({ embeds: [successEmbed] });
     } else {
-        await interaction.reply({ content: 'This ticket does not exist.', ephemeral: true });
+        return;
     }
 };

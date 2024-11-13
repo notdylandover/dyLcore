@@ -5,16 +5,19 @@ const { getUserEntitlement } = require('../../utils/entitlement');
 // Buttons
 const createTicket = require('../events/interactionCreate/button/createTicket');
 const closeTicket = require('../events/interactionCreate/button/closeTicket');
+const confirmCloseTicket = require('../events/interactionCreate/button/confirmCloseTicket');
 const blacklistUser = require('../events/interactionCreate/button/blacklistUser');
 const whitelistUser = require('../events/interactionCreate/button/whitelistUser');
 const renameChannel = require('../events/interactionCreate/button/renameChannel');
 const limitUser = require('../events/interactionCreate/button/limitUser');
 const lockChannel = require('../events/interactionCreate/button/lockChannel');
+const claimTicket = require('../events/interactionCreate/button/claimTicket');
 
 // Modals
 const whitelistUserModal = require('../events/interactionCreate/modalSubmit/whitelistUser');
 const blacklistUserModal = require('../events/interactionCreate/modalSubmit/blacklistUser');
 const renameChannelModal = require('../events/interactionCreate/modalSubmit/renameChannel');
+const limitUserModal = require('../events/interactionCreate/modalSubmit/limitUser');
 const feedbackModal = require('../events/interactionCreate/modalSubmit/feedbackModal');
 
 const fs = require('fs');
@@ -125,6 +128,10 @@ module.exports = {
                     createTicket(interaction);
                 } else if (customId === 'close_ticket') {
                     closeTicket(interaction);
+                } else if (customId === 'confirm_close_ticket') {
+                    confirmCloseTicket(interaction);
+                } else if (interaction.customId === 'claim_ticket') {
+                    await claimTicket(interaction);
                 }
                 
             } else if (interaction.isModalSubmit()) {
@@ -136,6 +143,8 @@ module.exports = {
                     await whitelistUserModal(interaction);
                 } else if (customId === 'untrust_user_modal') {
                     await blacklistUserModal(interaction);
+                } else if (customId === 'limit_user_modal') {
+                    await limitUserModal(interaction);
                 } else if (interaction.customId === 'ticketFeedback') {
                     await feedbackModal(interaction);
                 }

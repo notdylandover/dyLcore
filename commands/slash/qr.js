@@ -78,7 +78,7 @@ module.exports = {
             const qrCodePath = path.join(tempDir, 'qrcode.png');
 
             QRCode.toFile(qrCodePath, link, options, async (error) => {
-                if (err) {
+                if (error) {
                     Error(`Error generating QR code: ${error.message}`);
                     const errorEmbed = ErrorEmbed(error.message);
                     await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });

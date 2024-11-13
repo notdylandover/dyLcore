@@ -1,6 +1,18 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SuccessEmbedRemodal } = require('../../../../utils/embeds');
 const fs = require('fs');
 const path = require('path');
+
+function updateChannelName(ticketChannel, status) {
+    const statusEmojis = {
+        open: '🟢',
+        closed: '🔴',
+        requesterResponded: '🟠',
+    };
+    const emoji = statusEmojis[status] || '';
+    const newName = `${emoji}-${ticketChannel.name.split('-').pop().trim()}`;
+    ticketChannel.setName(newName).catch(console.error);
+}
 
 module.exports = async function closeTicket(interaction) {
     const ticketChannel = interaction.channel;
@@ -13,40 +25,64 @@ module.exports = async function closeTicket(interaction) {
         return await interaction.reply({ content: 'This ticket does not exist.', ephemeral: true });
     }
 
-    const modal = new ModalBuilder()
-        .setCustomId('ticketFeedback')
-        .setTitle('Ticket Feedback');
+    const ticketData = serverData.activeTickets[ticketChannel.id];
 
-    const feedbackInput = new TextInputBuilder()
-        .setCustomId('feedbackInput')
-        .setLabel('Please provide your feedback:')
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
-
-    modal.addComponents(new ActionRowBuilder().addComponents(feedbackInput));
-
-    await interaction.showModal(modal);
-
-    const filter = i => i.customId === 'ticketFeedback' && i.user.id === interaction.user.id;
-    const submitted = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(() => null);
-
-    if (!submitted) {
-        return await interaction.followUp({ content: 'You did not provide feedback in time.', ephemeral: true });
+    if (ticketData.status === "Closed") {
+        return await interaction.reply({ content: 'This ticket is already closed.', ephemeral: true });
     }
 
-    const feedback = submitted.fields.getTextInputValue('feedbackInput');
+    const isModerator = interaction.member.roles.cache.some(role => role.name === 'Ticket Moderator');
 
-    serverData.activeTickets[ticketChannel.id].feedback = feedback;
-    serverData.activeTickets[ticketChannel.id].status = "Closed";
+    if (isModerator) {
+        const confirmationEmbed = new EmbedBuilder()
+            .setColor('#FF0000')
+            .setTitle('Confirm Ticket Closure')
+            .setDescription(`A moderator has requested to close this ticket. Please confirm to proceed.`)
+            .setFooter({ text: 'Only the requester can confirm this closure.' });
 
-    fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+        const confirmButton = new ButtonBuilder()
+            .setCustomId('confirm_close_ticket')
+            .setLabel('Confirm Closure')
+            .setStyle(ButtonStyle.Danger);
 
-    try {
-        await ticketChannel.send(`Ticket closed. Feedback received: ${feedback}`);
-    } catch (error) {
-        const user = interaction.user;
-        await user.send(`Your ticket has been closed. Thank you for your feedback!`);
+        return await interaction.reply({ embeds: [confirmationEmbed], components: [new ActionRowBuilder().addComponents(confirmButton)] });
     }
 
-    await ticketChannel.delete();
+    if (interaction.user.id === ticketData.requester.id) {
+        const modal = new ModalBuilder()
+            .setCustomId('ticketFeedback')
+            .setTitle('Ticket Feedback');
+
+        const feedbackInput = new TextInputBuilder()
+            .setCustomId('feedbackInput')
+            .setLabel('Please provide your feedback:')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(false);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(feedbackInput));
+        await interaction.showModal(modal);
+
+        const filter = i => i.customId === 'ticketFeedback' && i.user.id === interaction.user.id;
+        const submitted = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(() => null);
+
+        if (!submitted) {
+            return;
+        }
+
+        const feedback = submitted.fields.getTextInputValue('feedbackInput');
+
+        if (feedback) {
+            ticketData.feedback = feedback;
+        }
+
+        ticketData.status = "Closed";
+        updateChannelName(ticketChannel, "closed");
+
+        fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
+
+        await submitted.reply({ content: 'The ticket has been successfully closed.', ephemeral: true });
+        return ticketChannel.send(`The ticket has been closed by ${interaction.user.username}.`);
+    } else {
+        return await interaction.reply({ content: 'You cannot close this ticket.', ephemeral: true });
+    }
 };

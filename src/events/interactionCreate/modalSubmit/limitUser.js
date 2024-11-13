@@ -1,11 +1,16 @@
 const path = require('path');
 const fs = require('fs');
 const { ErrorEmbed, SuccessEmbedRemodal } = require('../../../../utils/embeds');
-const { interactionCreate } = require('../../../../utils/logging');
 
-module.exports = async function renameChannelModal(interaction) {
-    const newChannelName = interaction.fields.getTextInputValue('new_channel_name');
+module.exports = async function limitUserModal(interaction) {
+    const userLimit = interaction.fields.getTextInputValue('user_limit');
     const member = interaction.member;
+    const parsedLimit = parseInt(userLimit);
+
+    if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 99) {
+        const errorEmbed = ErrorEmbed('Invalid user limit. Please enter a number between 1 and 99.');
+        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+    }
 
     if (!member.voice.channel) {
         const errorEmbed = ErrorEmbed('You are not in a voice channel.');
@@ -17,8 +22,6 @@ module.exports = async function renameChannelModal(interaction) {
 
     const channelInfo = settings.createdChannels.find(channel => channel.channelId === member.voice.channel.id);
 
-    interactionCreate(`${interaction.guild.name.cyan} - ${('#' + interaction.channel.name).cyan} - ${interaction.user.username.cyan} - ${("Rename Channel").magenta} name:${newChannelName.magenta}`);
-
     if (!channelInfo) {
         const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -29,7 +32,8 @@ module.exports = async function renameChannelModal(interaction) {
         return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
 
-    await member.voice.channel.setName(newChannelName);
-    const successEmbed = SuccessEmbedRemodal(`Channel renamed to \` ${newChannelName} \``);
+    await member.voice.channel.setUserLimit(parsedLimit);
+
+    const successEmbed = SuccessEmbedRemodal(`User limit has been set to \` ${parsedLimit} \`.`);
     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
 };

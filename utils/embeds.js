@@ -3,6 +3,16 @@ const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
+module.exports.TicketEmbed = function() {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setDescription(
+            `# Ticket Interface\n` +
+            `Use the button below to create a new ticket.`
+        );
+};
+
+
 module.exports.GameUpdateEmbed = function(name, title, url, description, headerImage) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)

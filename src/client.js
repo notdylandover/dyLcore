@@ -1,7 +1,6 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
-const { Debug, DiscordJS, Invalid, Error, Warn } = require('../utils/logging');
-const startServer = require('../utils/server');
+const { Debug, DiscordJS, Invalid, Error, Warn, Info } = require('../utils/logging');
 
 const fs = require('fs');
 const path = require('path');
@@ -11,8 +10,6 @@ const Discord = require('discord.js');
 const { version: DJSVersion } = Discord;
 
 const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
-
-startServer(client);
 
 DiscordJS(`DiscordJS v${DJSVersion}`);
 client.login(process.env.TOKEN);
@@ -25,10 +22,10 @@ const verifiedEvents = [];
 const missingEvents = [];
 const invalidEvents = [];
 
-const debugMode = process.env.DEBUG_MODE || 'false';
+const debugMode = process.env.DEBUG_MODE === 'true';
 const debugModePath = path.resolve(__dirname, '..', 'data', 'debugMode.json');
 
-if (debugMode === 'true') {
+if (debugMode) {
     Debug(`Debug mode is enabled`);
 } else {
     Debug(`Debug mode is disabled`);
@@ -43,14 +40,16 @@ if (fs.existsSync(debugModePath)) {
     Warn('No debugMode.json found. Using an empty list of disabled events.');
 }
 
+Debug(`Verifying events`);
+
 for (const file of eventFiles) {
     try {
         const event = require(`./events/${file}`);
 
         if (event.name && typeof event.execute === 'function') {
-            const isEventInDebugList = debugConfig.disabledEvents.includes(event.name);
+            const isEventDisabledInNormal = debugConfig.disabledEvents.includes(event.name);
 
-            if (debugMode && isEventInDebugList) {
+            if (!debugMode && isEventDisabledInNormal) {
                 continue;
             }
 
@@ -60,7 +59,7 @@ for (const file of eventFiles) {
                 try {
                     await event.execute(...args);
                 } catch (error) {
-                    Error(`Error executing ${event.name}: ${error.message}`);
+                    Error(`Error executing ${event.name} in ${file}: ${error.message}`);
                 }
             });
         } else {

@@ -14,26 +14,26 @@ function dbOutput(t, m) {
 
     require('fs').promises.mkdir(dataFolderPath, { recursive: true });
 
-    const db = new sqlite3.Database(dbPath, (err) => {
-        if (err) {
-            console.error('Error opening SQLite database:', err);
-            return;
-        }
+    // const db = new sqlite3.Database(dbPath, (err) => {
+    //     if (err) {
+    //         console.error('Error opening SQLite database:', err);
+    //         return;
+    //     }
 
-        db.serialize(() => {
-            const tableName = formattedDate;
-            db.run(`CREATE TABLE IF NOT EXISTS "${tableName}" (time TEXT, type TEXT, content TEXT)`);
-            const stmt = db.prepare(`INSERT INTO "${tableName}" (time, type, content) VALUES (?,?,?)`);
-            stmt.run(time, type, content);
-            stmt.finalize();
-        });
+    //     db.serialize(() => {
+    //         const tableName = formattedDate;
+    //         db.run(`CREATE TABLE IF NOT EXISTS "${tableName}" (time TEXT, type TEXT, content TEXT)`);
+    //         const stmt = db.prepare(`INSERT INTO "${tableName}" (time, type, content) VALUES (?,?,?)`);
+    //         stmt.run(time, type, content);
+    //         stmt.finalize();
+    //     });
 
-        db.close((err) => {
-            if (err) {
-                console.error('Error closing SQLite database:', err);
-            }
-        });
-    });
+    //     db.close((err) => {
+    //         if (err) {
+    //             console.error('Error closing SQLite database:', err);
+    //         }
+    //     });
+    // });
 }
 
 function info(m, c) {
@@ -55,7 +55,30 @@ module.exports.ServerDone = function (m) {
     console.log(`${`[SERVER]`.magenta}\t${m.green}`);
 }
 
-// Custom
+// NEW Custom
+
+module.exports.CommandRegisterDone = function (m) {
+    info(m, colors.green);
+};
+
+module.exports.CommandRegisterSuccess = function (m) {
+    info(m, colors.grey);
+};
+
+module.exports.CommandRegisterFailed = function (m) {
+    info(m, colors.red);
+};
+
+module.exports.TimestampInfoDB = function (m) {
+    info(m, colors.grey);
+    dbOutput('Info', m);
+};
+
+module.exports.TimestampInfo = function (m) {
+    info(m, colors.grey);
+};
+
+// old Custom
 
 module.exports.Google = function (m) {
     const time = new Date().toLocaleTimeString();

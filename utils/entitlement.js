@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const https = require('https');
-const { Error, DebugNoDB, Debug } = require('./logging');
+const { Error, TimestampInfo } = require('./logging');
 require('dotenv').config();
 
 const userCache = {};
@@ -64,6 +64,8 @@ async function fetchAllEntitlements() {
             'Content-Type': 'application/json',
         }
     };
+
+    TimestampInfo('Fetching entitlements...');
 
     return new Promise((resolve, reject) => {
         const req = https.request(options, async (res) => {

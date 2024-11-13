@@ -70,7 +70,7 @@ function formatWaitMessage(info) {
     const waitMatch = info.match(/for (\d+)ms/);
     if (waitMatch) {
         const time = waitMatch[1];
-        return `Waiting ${time / 1000}s`;
+        return `Waiting ${time / 1000}s for ready event.`;
     }
     return info;
 }

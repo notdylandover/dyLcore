@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder, Role, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const { EMOJIS } = require('../../utils/constants');
-const { JoinToCreateVC, SuccessEmbedRemodal, ErrorEmbed } = require('../../utils/embeds');
+const { JoinToCreateVC, SuccessEmbedRemodal, ErrorEmbed, TicketEmbed } = require('../../utils/embeds');
 const fs = require('fs');
 const path = require('path');
 
@@ -137,7 +137,7 @@ module.exports = {
             } else if (interaction.options.getSubcommand() === 'ticket-system') {
                 const existingCategory = settings.ticketCategory ? guild.channels.cache.get(settings.ticketCategory) : null;
                 const existingInterfaceChannel = settings.ticketInterfaceChannel ? guild.channels.cache.get(settings.ticketInterfaceChannel) : null;
-
+            
                 if (existingInterfaceChannel) {
                     try {
                         const messages = await existingInterfaceChannel.messages.fetch({ limit: 5 });
@@ -146,43 +146,57 @@ module.exports = {
                         console.error('Error deleting messages:', err);
                     }
                 }
-
+            
                 if (!existingCategory || !existingInterfaceChannel) {
                     if (existingCategory) await existingCategory.delete();
                     if (existingInterfaceChannel) await existingInterfaceChannel.delete();
-
+            
                     const newCategory = await guild.channels.create({
                         name: 'Tickets',
                         type: ChannelType.GuildCategory,
                     });
-
+            
                     const newInterfaceChannel = await guild.channels.create({
                         name: 'ticket-interface',
                         type: ChannelType.GuildText,
                         parent: newCategory.id,
+                        permissionOverwrites: [
+                            {
+                                id: guild.roles.everyone.id,
+                                deny: [
+                                    PermissionFlagsBits.SendMessages, 
+                                    PermissionFlagsBits.EmbedLinks,
+                                    PermissionFlagsBits.AttachFiles,
+                                    PermissionFlagsBits.UseExternalEmojis,
+                                    PermissionFlagsBits.AddReactions
+                                ],
+                                allow: [
+                                    PermissionFlagsBits.ViewChannel,
+                                    PermissionFlagsBits.ReadMessageHistory
+                                ]
+                            }
+                        ]
                     });
-
+            
                     settings.ticketCategory = newCategory.id;
                     settings.ticketInterfaceChannel = newInterfaceChannel.id;
                     fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
                 }
-
+            
                 const ticketButton = new ButtonBuilder()
                     .setCustomId('create_ticket')
                     .setLabel('Create Ticket')
                     .setStyle(ButtonStyle.Primary);
-
+            
                 const row = new ActionRowBuilder().addComponents(ticketButton);
-
-                const ticketEmbed = new EmbedBuilder()
-                    .setTitle('Ticket System')
-                    .setDescription('Click the button below to create a new ticket.');
-
+            
+                const ticketEmbed = TicketEmbed();
+            
                 await guild.channels.cache.get(settings.ticketInterfaceChannel).send({
                     embeds: [ticketEmbed],
                     components: [row],
                 });
-
+            
                 let ticketModeratorRole = guild.roles.cache.find(role => role.name === 'Ticket Moderator');
                 if (!ticketModeratorRole) {
                     ticketModeratorRole = await guild.roles.create({
@@ -190,10 +204,12 @@ module.exports = {
                         permissions: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageMessages],
                     });
                 }
-
+                settings.ticketModeratorRoleId = ticketModeratorRole.id;
+                fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
+            
                 const successEmbed = SuccessEmbedRemodal('Ticket System has been set up or updated!');
                 return interaction.editReply({ embeds: [successEmbed] });
-            }
+            }            
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
