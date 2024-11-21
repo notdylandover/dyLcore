@@ -13,7 +13,7 @@ module.exports.TicketEmbed = function() {
 };
 
 
-module.exports.GameUpdateEmbed = function(name, title, url, description, headerImage) {
+module.exports.GameUpdateEmbed = function(name, title, url, description, headerImage, platform) {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)
         .setAuthor({
@@ -26,7 +26,7 @@ module.exports.GameUpdateEmbed = function(name, title, url, description, headerI
         .setTimestamp()
         .setFooter({
             iconURL: LINKS.brand,
-            text: `${TEXT.brand} • Steam`
+            text: `${TEXT.brand} • ${platform}`
         });
 };
 

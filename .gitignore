@@ -1,10 +1,13 @@
-.env
-package-lock.json
-run.bat
+*.env
+*package-lock.json
+*run.bat
 
-/node_modules
-/temp
-/data
-/pages
+*node_modules
+*temp
+*data
+*pages
 
-UPDATE.md
+*UPDATE.md
+
+*.next
+*.vscode

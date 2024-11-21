@@ -2,12 +2,13 @@ const { DoneEmbed } = require('../../utils/embeds');
 const { Error } = require('../../utils/logging');
 const { updateLibraries } = require('../../utils/updateLibraries');
 const { updateEmojis } = require('../../utils/updateEmojis');
+const { registerCommands } = require('../../utils/registerCommands');
 
 module.exports = {
     name: 'update',
     async execute(message) {
         try {
-            const args = message.content.split(' ').slice(1); // Extract command arguments
+            const args = message.content.split(' ').slice(1);
 
             const responses = [];
 
@@ -15,8 +16,16 @@ module.exports = {
                 message.channel.sendTyping();
 
                 const updatedLibraries = await updateLibraries();
-                const libraryUpdatesEmbed = DoneEmbed(`Finished library updates to the host\n${updatedLibraries}`);
+                const libraryUpdatesEmbed = DoneEmbed(`Finished library updates to the client\n${updatedLibraries}`);
                 responses.push(libraryUpdatesEmbed);
+            }
+
+            if (args.includes('commands')) {
+                message.channel.sendTyping();
+
+                await registerCommands(message.client);
+                const commandUpdatesEmbed = DoneEmbed(`Finished command updates to the client`);
+                responses.push(commandUpdatesEmbed);
             }
 
             if (args.includes('emojis')) {

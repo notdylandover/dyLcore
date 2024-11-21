@@ -40,11 +40,12 @@ module.exports.DEVICE = Object.freeze({
 });
 
 module.exports.LINKS = Object.freeze({
-    server:     'https://discord.gg/36tkJQPkT9',
-    brand:      'https://cdn.discordapp.com/avatars/1187423057531379784/a4eddaf7ab277e6b5eedbd4b25d244dc.webp?size=4096',
-    premium:    'https://cdn.discordapp.com/app-assets/1187423057531379784/store/1290342945765199882.webp?size=4096',
-    github:     'https://github.com/notdylandover/AutoResponse',
-    google:     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png'
+    server:         'https://discord.gg/36tkJQPkT9',
+    brand:          'https://cdn.discordapp.com/avatars/1187423057531379784/a_321e46006ba260f742caf4546224b476.gif?size=4096',
+    premium:        'https://cdn.discordapp.com/app-assets/1187423057531379784/store/1290342945765199882.webp?size=4096',
+    github:         'https://github.com/notdylandover/AutoResponse',
+    google:         'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
+    roblox_header:  'https://cdn.buttercms.com/ORMyMISWTDas1y0KNm0j'
 });
 
 module.exports.EMOJIS = Object.freeze({

@@ -4,7 +4,7 @@ const { fetchAllEntitlements } = require('../../utils/entitlement');
 const { fetchGameUpdates } = require('../../utils/gameUpdates');
 
 const isLive = require('../../utils/isLive');
-const setPresence = require("../../utils/setPresence");
+const setPresence = require("../../utils/presence");
 
 const cron = require("node-cron");
 const getBotInfo = require('../../utils/getBotInfo');
@@ -32,7 +32,6 @@ module.exports = {
             await getBotInfo(client);
             await fetchAllEntitlements(client);
             await registerCommands(client);
-
             await fetchGameUpdates(client);
 
             cron.schedule("*/10 * * * * *", async () => {

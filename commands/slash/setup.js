@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder, Role, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const { EMOJIS } = require('../../utils/constants');
 const { JoinToCreateVC, SuccessEmbedRemodal, ErrorEmbed, TicketEmbed } = require('../../utils/embeds');
+
 const fs = require('fs');
 const path = require('path');
 
@@ -15,10 +16,6 @@ module.exports = {
         .addSubcommand(new SlashCommandSubcommandBuilder()
             .setName('join-to-create-vc')
             .setDescription('Set up the Join to Create VC feature in this server')
-        )
-        .addSubcommand(new SlashCommandSubcommandBuilder()
-            .setName('game-updates')
-            .setDescription('Set up the Game Updates feature in this server')
         )
         .addSubcommand(new SlashCommandSubcommandBuilder()
             .setName('ticket-system')
@@ -37,25 +34,8 @@ module.exports = {
             }
 
             const settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf-8'));
-
-            if (interaction.options.getSubcommand() === 'game-updates') {
-                const gameUpdatesChannel = settings.gameUpdatesChannel ? guild.channels.cache.get(settings.gameUpdatesChannel) : null;
-
-                if (gameUpdatesChannel) {
-                    await gameUpdatesChannel.delete();
-                }
-
-                const newGameUpdatesChannel = await guild.channels.create({
-                    name: 'game-updates',
-                    type: ChannelType.GuildText,
-                });
-
-                settings.gameUpdatesChannel = newGameUpdatesChannel.id;
-                fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
-
-                const successEmbed = SuccessEmbedRemodal('Game Updates channel has been set up or updated!');
-                return interaction.editReply({ embeds: [successEmbed] });
-            } else if (interaction.options.getSubcommand() === 'join-to-create-vc') {
+            
+            if (interaction.options.getSubcommand() === 'join-to-create-vc') {
                 const joinToCreateVCChannel = settings.joinToCreateVC ? guild.channels.cache.get(settings.joinToCreateVC) : null;
                 const interfaceChannel = settings.interfaceChannel ? guild.channels.cache.get(settings.interfaceChannel) : null;
 

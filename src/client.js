@@ -59,14 +59,14 @@ for (const file of eventFiles) {
                 try {
                     await event.execute(...args);
                 } catch (error) {
-                    Error(`Error executing ${event.name} in ${file}: ${error.message}`);
+                    Error(`Error executing ${event.name} in ${file}:\n${error.stack}`);
                 }
             });
         } else {
             invalidEvents.push(file);
         }
     } catch (error) {
-        Error(`Error loading event ${file}: ${error.message}`);
+        Error(`Error loading event ${file}:\n${error.stack}`);
         missingEvents.push(file);
     }
 }

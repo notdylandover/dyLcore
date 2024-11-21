@@ -113,12 +113,12 @@ module.exports = async function isLive(client, channels) {
                 continue;
             }
 
-            if (streams.length > 0) {
+                        if (streams.length > 0) {
                 await Promise.all(streams.map(async stream => {
                     const thumbnailURL = stream.thumbnail_url.replace('{width}', '1920').replace('{height}', '1080');
                     const userProfile = await getUserProfile(stream.user_name, token);
                     const avatarURL = userProfile.profile_image_url;
-
+            
                     const embed = new LiveEmbed({
                         username: stream.user_name,
                         avatarURL: avatarURL,
@@ -127,9 +127,9 @@ module.exports = async function isLive(client, channels) {
                         viewers: stream.viewer_count,
                         thumbnailURL: thumbnailURL
                     });
-
+            
                     const existingMessageId = guildConfig.messageIds.find(msgId => msgId.stream === stream.user_name);
-
+            
                     if (existingMessageId) {
                         await updateMessage(client, liveChannelId, existingMessageId.messageId, { content: '', embeds: [embed] });
                     } else {
@@ -137,7 +137,7 @@ module.exports = async function isLive(client, channels) {
                         guildConfig.messageIds.push({ stream: stream.user_name, messageId: newMessageId });
                         storeLiveConfig(guild.id, guildConfig);
                     }
-
+            
                     const discordUserId = twitchUsers[stream.user_name]?.discordUserId;
                     if (discordUserId && liveRoleId) {
                         const updatedGuild = await client.guilds.fetch(guild.id);
@@ -151,11 +151,14 @@ module.exports = async function isLive(client, channels) {
                                 return Error(`Could not fetch member: ${error.message}`);
                             }
                         }
-
+            
                         if (member) {
                             if (!member.roles.cache.has(liveRoleId)) {
                                 await member.roles.add(liveRoleId)
                             }
+                            
+                            const originalNickname = member.displayName.replace(/^🔴 /, '');
+                            await member.setNickname(`🔴 ${originalNickname}`);
                         }
                     }
                 }));
@@ -166,7 +169,7 @@ module.exports = async function isLive(client, channels) {
                     }));
                     storeLiveConfig(guild.id, { ...guildConfig, messageIds: [] });
                 }
-
+            
                 for (const twitchUser of Object.keys(twitchUsers)) {
                     const discordUserId = twitchUsers[twitchUser]?.discordUserId;
                     if (discordUserId && liveRoleId) {
@@ -181,11 +184,14 @@ module.exports = async function isLive(client, channels) {
                                 return Error(`Could not fetch member: ${error.message}`);
                             }
                         }
-
+            
                         if (member) {
                             if (member.roles.cache.has(liveRoleId)) {
                                 await member.roles.remove(liveRoleId)
                             }
+                            
+                            const originalNickname = member.displayName.replace(/^🔴 /, '');
+                            await member.setNickname(originalNickname);
                         }
                     }
                 }
@@ -194,6 +200,10 @@ module.exports = async function isLive(client, channels) {
 
         return streams.map(stream => stream.user_name);
     } catch (error) {
+        if (error.message.includes('Missing Permissions')) {
+            return;
+        }
+
         Error(`Error in isLive function:\n${error.message}`);
         throw error;
     }
