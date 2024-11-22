@@ -242,7 +242,7 @@ module.exports.guildAuditLogEntryCreate = function (m) {
 };
 
 module.exports.guildAvailable = function (m) {
-    info(m, colors.green);
+    info(m, colors.grey);
 };
 
 module.exports.guildBanAdd = function (m) {

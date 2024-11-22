@@ -37,7 +37,7 @@ const updateCommands = () => {
                 }
             } catch (error) {
                 invalidCommands.push(file);
-                CommandRegisterFailed(`Error loading command ${file}: ${error.message}`);
+                CommandRegisterFailed(`Error loading command ${file}:\n${error.stack}`);
             }
         }
     });

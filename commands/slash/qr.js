@@ -6,24 +6,6 @@ const fs = require('fs');
 const path = require('path');
 
 const QRCode = require('qrcode');
-const colorNameList = require('color-name-list');
-
-function getColorHex(colorName) {
-    if (colorName === 'transparent') {
-        return '#00000000';
-    }
-    else if (colorName === 'random') {
-        return '#' + Math.floor(Math.random() * 16777215).toString(16);
-    }
-
-    const colorEntry = colorNameList.find(c => c.name.toLowerCase() === colorName.toLowerCase());
-    
-    if (colorEntry) {
-        return colorEntry.hex;
-    }
-    
-    return null;
-}
 
 module.exports = {
     premium: false,
@@ -49,43 +31,69 @@ module.exports = {
         ),
     async execute(interaction) {
         await interaction.deferReply();
+        
+        const colorNameModule = await import('color-name');
+        const colorName = colorNameModule.default;
+
+        function getColorHex(colorNameString) {
+            if (colorNameString === 'transparent') {
+                return '#00000000';
+            } else if (colorNameString === 'random') {
+                return '#' + Math.floor(Math.random() * 16777215).toString(16);
+            }
+
+            const rgb = colorName[colorNameString.toLowerCase()];
+
+            if (rgb) {
+                const hex = rgb
+                    .map((value) => value.toString(16).padStart(2, '0'))
+                    .join('');
+                return `#${hex}`;
+            }
+
+            return null;
+        }
 
         try {
             const link = interaction.options.getString('link');
-            let backgroundColor = interaction.options.getString('background') || '#232428';
-            let foregroundColor = interaction.options.getString('foreground') || '#FFF';
+            const backgroundColorInput = interaction.options.getString('background') || '#232428';
+            const foregroundColorInput = interaction.options.getString('foreground') || '#FFF';
 
-            const backgroundHex = getColorHex(backgroundColor);
-            const foregroundHex = getColorHex(foregroundColor);
-
-            if (backgroundHex) backgroundColor = backgroundHex;
-            if (foregroundHex) foregroundColor = foregroundHex;
+            const backgroundColor = getColorHex(backgroundColorInput) || backgroundColorInput;
+            const foregroundColor = getColorHex(foregroundColorInput) || foregroundColorInput;
 
             const options = {
                 width: 2048,
                 height: 2048,
                 color: {
                     dark: foregroundColor,
-                    light: backgroundColor
-                }
+                    light: backgroundColor,
+                },
             };
 
             const tempDir = path.join(__dirname, '../temp');
             if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir, { recursive: true });
             }
-            
+
             const qrCodePath = path.join(tempDir, 'qrcode.png');
 
             QRCode.toFile(qrCodePath, link, options, async (error) => {
                 if (error) {
                     Error(`Error generating QR code: ${error.message}`);
                     const errorEmbed = ErrorEmbed(error.message);
-                    await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                    await interaction.editReply({
+                        embeds: [errorEmbed],
+                        ephemeral: true,
+                    });
                     return;
                 }
 
-                await interaction.editReply({ embeds: [], files: [qrCodePath], ephemeral: true });
+                await interaction.editReply({
+                    embeds: [],
+                    files: [qrCodePath],
+                    ephemeral: true,
+                });
 
                 fs.unlinkSync(qrCodePath);
             });
@@ -95,9 +103,15 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({
+                    embeds: [errorEmbed],
+                    ephemeral: true,
+                });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({
+                    embeds: [errorEmbed],
+                    ephemeral: true,
+                });
             }
         }
     },
