@@ -2,6 +2,7 @@ const { LiveHelpTitle, LiveHelpStep1, LiveHelpStep2, LiveHelpStep3 } = require("
 
 module.exports = {
     name: 'livehelp',
+    private: true,
     async execute(message) {
         await message.delete();
         const channel = message.channel;

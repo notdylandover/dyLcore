@@ -1,4 +1,4 @@
-const { DebugNoDB, Error } = require('./logging');
+const { Error } = require('./logging');
 const { LiveEmbed } = require('./embeds');
 
 require('dotenv').config();

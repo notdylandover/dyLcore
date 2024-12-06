@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits } = require('discord.js');
 const { ErrorEmbed, AutomodRulesEmbed } = require('../../utils/embeds');
-const { CommandError, DebugNoDB } = require('../../utils/logging');
+const { CommandError } = require('../../utils/logging');
 const { getAutomodRules } = require('../../utils/automod');
 
 module.exports = {

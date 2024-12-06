@@ -1,4 +1,4 @@
-const { Error, Debug, TimestampInfo } = require('./logging');
+const { Error, Debug, Info } = require('./logging');
 
 require('dotenv').config();
 

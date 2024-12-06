@@ -4,6 +4,7 @@ require('dotenv').config();
 
 module.exports = {
     name: 'rl',
+    private: true,
     async execute(message) {
         const embed = DoneEmbed(`Reloaded Manager`);
         await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false }});

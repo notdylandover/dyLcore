@@ -2,6 +2,7 @@ const { Debug, CommandError } = require('../../utils/logging');
 
 module.exports = {
     name: 'react',
+    private: true,
     async execute(message) {
         const args = message.content.split(' ').slice(1);
         if (args.length !== 2) {
@@ -26,7 +27,7 @@ module.exports = {
             Debug(`Reacted to message ${messageId} with emote ${emote.name}`);
             return await message.delete();
         } catch (error) {
-            CommandError('react', error.stack);
+            CommandError(module.exports.name, error.stack);
             return await message.react('❌');
         }
     }

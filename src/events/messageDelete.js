@@ -8,10 +8,6 @@ module.exports = {
     name: 'messageDelete',
     async execute(message) {
         try {
-            if (message.author && message.author.bot) {
-                return;
-            }
-
             let serverName = message.guild ? message.guild.name : "Direct Message";
             let channelId = message.channel ? message.channel.id : null;
             let channelName = message.channel ? message.channel.name : "Direct Message";
@@ -41,6 +37,10 @@ module.exports = {
 
             if (!message.inGuild()) {
                 return messageDelete(`${`DM`.magenta} - ${authorUsername.cyan} - ${messageContent.white} ${'(Deleted)'.red}`);
+            }
+
+            if (message.author && message.author.bot) {
+                return messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);
             }
 
             messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);

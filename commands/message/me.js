@@ -1,7 +1,9 @@
 const { CommandError } = require('../../utils/logging');
+const { WarnEmbed } = require('../../utils/embeds');
 
 module.exports = {
     name: 'me',
+    private: true,
     async execute(message) {
         try {
             const botMessage = message.content.split(' ').slice(1).join(' ');
@@ -14,7 +16,7 @@ module.exports = {
             message.delete();
             await message.channel.send(botMessage);
         } catch (error) {
-            CommandError('react', error.stack);
+            CommandError(module.exports.name, error.stack);
             return await message.react('❌');
         }
     }

@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 
 module.exports = {
     name: 'embed',
+    private: true,
     async execute(message) {
         try {
             const quoteResponse = await fetch('https://inspirobot.me/api?generate=true');
@@ -17,7 +18,7 @@ module.exports = {
             await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false }});
             return await message.react('✅');
         } catch (error) {
-            Error(`Error executing ${module.exports.name}:\n${error.stack}`);
+            CommandError(module.exports.name, error.stack);
             return message.react('❌');
         }
     }

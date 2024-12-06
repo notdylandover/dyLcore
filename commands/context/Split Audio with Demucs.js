@@ -1,7 +1,7 @@
 const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed, FileEmbed } = require("../../utils/embeds");
 const { PremiumFileEmbed } = require("../../utils/PremiumEmbeds");
-const { CommandError, DebugNoDB, Error } = require("../../utils/logging");
+const { CommandError, Debug, Error } = require("../../utils/logging");
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -116,8 +116,8 @@ module.exports = {
 
             if (filePath && fs.existsSync(filePath)) {
                 fs.unlink(filePath, (err) => {
-                    if (err) DebugNoDB(`Error deleting temp file during error handling: ${filePath}`);
-                    else DebugNoDB(`Deleted temp file during error handling: ${filePath}`);
+                    if (err) Debug(`Error deleting temp file during error handling: ${filePath}`);
+                    else Debug(`Deleted temp file during error handling: ${filePath}`);
                 });
             }
         }

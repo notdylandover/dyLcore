@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, WeatherEmbed } = require('../../utils/embeds');
-const { CommandError, Debug } = require("../../utils/logging");
+const { CommandError } = require("../../utils/logging");
 const { EMOJIS } = require('../../utils/constants');
-const { getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji } = require('../../utils/weather');
+const { getCurrentTemperature, getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji, getCoordinates } = require('../../utils/weather');
 
 module.exports = {
     premium: false,
@@ -22,22 +22,23 @@ module.exports = {
 
         try {
             const zip = interaction.options.getString('zip');
-            const forecastProperties = await getNearestForecastOffice(zip);
+            const { lat, lon } = await getCoordinates(zip);
+
+            const forecastProperties = await getNearestForecastOffice(lat, lon);
             const weeklyForecast = await getWeeklyForecast(forecastProperties.forecast);
 
-            const currentWeatherPeriod = weeklyForecast[0];
+            const currentTemperature = await getCurrentTemperature(lat, lon);
             const currentCondition = weeklyForecast[0]?.condition;
-            const currentTemperature = currentWeatherPeriod?.temperature;
             const currentWeatherEmoji = getWeatherEmoji(currentCondition);
             const emojiIdMatch = currentWeatherEmoji.match(/:(\d+)>/);
             const emojiId = emojiIdMatch ? emojiIdMatch[1] : null;
             const currentConditionEmoji = emojiId ? `https://cdn.discordapp.com/emojis/${emojiId}.png` : null;
-            const zoneData = await getZoneData(zip);
+            const zoneData = await getZoneData(lat, lon);
 
             const icon = await getForecastIcon(weeklyForecast);
-            const forecastZone = await getForecastZone(zip);
+            const forecastZone = await getForecastZone(lat, lon);
             const radar = await getRadarImage(forecastProperties.radarStation);
-            const timeZone = await getTimeZone(zip);
+            const timeZone = await getTimeZone(lat, lon);
 
             const city = forecastProperties.city;
             const state = forecastProperties.state;
@@ -61,6 +62,7 @@ module.exports = {
                     }
 
                     if (period.name.includes("Night") || period.name === "Tonight") {
+                        // delete data
                         dailyData[dateKey].low = period.temperature;
                     } else {
                         dailyData[dateKey].high = period.temperature;
@@ -73,8 +75,6 @@ module.exports = {
 
             upcomingDays.forEach(date => {
                 const { high, low, condition } = dailyData[date];
-
-                Debug(condition);
 
                 const highDisplay = high !== null ? `${high}°F` : '    ';
                 const lowDisplay = low !== null ? `${low}°F` : '    ';

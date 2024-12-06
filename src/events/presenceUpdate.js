@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const { presenceUpdate, Error } = require('../../utils/logging');
 
 const lastStatus = new Map();
@@ -34,12 +32,6 @@ module.exports = {
 
             const userId = newPresence.user.id;
             const username = newPresence.user.username;
-            const userDir = path.join(__dirname, '../../data/users', username);
-            const presenceFilePath = path.join(userDir, 'presence.json');
-
-            if (!fs.existsSync(userDir)) {
-                fs.mkdirSync(userDir, { recursive: true });
-            }
 
             const oldStatus = oldPresence ? oldPresence.status : undefined;
             const newStatus = newPresence.status;
@@ -79,14 +71,6 @@ module.exports = {
 
             if (!activitiesAreEqual(oldActivity, newActivity)) {
                 if (newActivity && newActivity.length > 0) {
-                    const presenceData = {
-                        status: newPresence.status,
-                        activities: newActivity,
-                        timestamp: new Date().toISOString(),
-                    };
-
-                    fs.writeFileSync(presenceFilePath, JSON.stringify(presenceData, null, 2));
-
                     const activityText = newActivity.map(activity => {
                         let details = activity.name || '';
                         if (activity.details) details += ` - ${activity.details}`;

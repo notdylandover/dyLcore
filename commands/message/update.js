@@ -6,6 +6,7 @@ const { registerCommands } = require('../../utils/registerCommands');
 
 module.exports = {
     name: 'update',
+    private: true,
     async execute(message) {
         try {
             const args = message.content.split(' ').slice(1);
@@ -45,8 +46,8 @@ module.exports = {
             message.client.destroy();
             return process.exit(0);
         } catch (error) {
-            message.react('❌');
-            return Error(`Error executing ${module.exports.name}:\n${error.stack}`);
+            CommandError(module.exports.name, error.stack);
+            return await message.react('❌');
         }
     }
 };

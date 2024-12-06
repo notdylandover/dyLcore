@@ -1,6 +1,7 @@
 *.env
 *package-lock.json
 *run.bat
+*yarn.lock
 
 *node_modules
 *temp
@@ -11,3 +12,4 @@
 
 *.next
 *.vscode
+*models

@@ -81,17 +81,24 @@ module.exports = {
                 }
             }
 
-            if (message.author && message.author.id === allowedUserId) {
-                if (messageContent.startsWith(commandPrefix)) {
-                    const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
-                    const command = messageCommands.get(commandName);
-                    interactionCreate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent.magenta}`);
+            
+            if (messageContent.startsWith(commandPrefix)) {
+                const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
+                const command = messageCommands.get(commandName);
+                interactionCreate(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent.magenta}`);
 
-                    if (command) {
+                if (command) {
+                    if (command.private) {
+                        if (message.author && message.author.id === allowedUserId) {
+                            return await command.execute(message);
+                        }
+                    } else if (!command.private) {
                         return await command.execute(message);
                     } else {
-                        message.react('❔');
+                        return await message.react('❔');
                     }
+                } else {
+                    return await message.react('❔');
                 }
             }
 

@@ -12,6 +12,13 @@ module.exports.TicketEmbed = function() {
         );
 };
 
+module.exports.DebugEmbed = function(message) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setDescription(
+            `\`\`\`\n${message}\n\`\`\``
+        );
+};
 
 module.exports.GameUpdateEmbed = function(name, title, url, description, headerImage, platform) {
     return embed = new EmbedBuilder()

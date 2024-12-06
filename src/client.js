@@ -1,9 +1,10 @@
 const { INTENTS } = require('./intents');
 const { PARTIALS } = require('./partials');
-const { Debug, DiscordJS, Invalid, Error, Warn, Info } = require('../utils/logging');
+const { Debug, Version, Invalid, Error, Warn, Info, Done } = require('../utils/logging');
 
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 require('dotenv').config();
 
 const Discord = require('discord.js');
@@ -11,9 +12,44 @@ const { version: DJSVersion } = Discord;
 
 const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
 
-DiscordJS(`DiscordJS v${DJSVersion}`);
-client.login(process.env.TOKEN);
+(async () => {
+    try {
+        const latestVersion = (await import('latest-version')).default;
 
+        const latestDJSVersion = await latestVersion('discord.js');
+
+        if (DJSVersion !== latestDJSVersion) {
+            Version(`DiscordJS v${DJSVersion}` + `\t` + ` A new version is available: v${latestDJSVersion} `.bgGreen.black);
+            Info(`Updating DiscordJS...`);
+            exec(`npm install discord.js@latest`, (error, stdout, stderr) => {
+                if (error) {
+                    Error(`Error updating DiscordJS: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    Error(`stderr: ${stderr}`);
+                    return;
+                }
+                Done(`DiscordJS updated to v${latestDJSVersion}`);
+            });
+        } else {  
+            Version(`DiscordJS v${DJSVersion}`);
+        }
+
+        const latestNodeVersion = await latestVersion('node');
+        const currentNodeVersion = process.version.replace(/^v/, '');
+
+        if (currentNodeVersion !== latestNodeVersion) {
+            Version(`NodeJS ${process.version}` + `\t\t` + ` A new version is available: v${latestNodeVersion} `.bgGreen.black);
+        } else {
+            Version(`NodeJS ${process.version}`);
+        }
+    } catch (error) {
+        Error(`Failed to check for updates: ${error.message}`);
+    }
+})();
+
+client.login(process.env.TOKEN);
 client.commands = new Discord.Collection();
 
 const eventFiles = fs.readdirSync(path.resolve(__dirname, 'events')).filter(file => file.endsWith('.js'));
@@ -26,9 +62,9 @@ const debugMode = process.env.DEBUG_MODE === 'true';
 const debugModePath = path.resolve(__dirname, '..', 'data', 'debugMode.json');
 
 if (debugMode) {
-    Debug(`Debug mode is enabled`);
+    Debug(`Debug mode is ` + `Enabled`.green);
 } else {
-    Debug(`Debug mode is disabled`);
+    Debug(`Debug mode is ` + `Disabled`.red);
 }
 
 let debugConfig = { disabledEvents: [] };
@@ -39,8 +75,6 @@ if (fs.existsSync(debugModePath)) {
 } else {
     Warn('No debugMode.json found. Using an empty list of disabled events.');
 }
-
-Debug(`Verifying events`);
 
 for (const file of eventFiles) {
     try {

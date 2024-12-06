@@ -1,5 +1,5 @@
 const { registerCommands } = require('../../utils/registerCommands');
-const { Error, TimestampInfo } = require('../../utils/logging');
+const { Error } = require('../../utils/logging');
 const { fetchAllEntitlements } = require('../../utils/entitlement');
 const { fetchGameUpdates } = require('../../utils/gameUpdates');
 
@@ -7,7 +7,6 @@ const isLive = require('../../utils/isLive');
 const setPresence = require("../../utils/presence");
 
 const cron = require("node-cron");
-const getBotInfo = require('../../utils/getBotInfo');
 
 const channels = [
     'atuesports',
@@ -29,7 +28,6 @@ module.exports = {
     async execute(client) {
         try {
             await setPresence(client);
-            await getBotInfo(client);
             await fetchAllEntitlements(client);
             await registerCommands(client);
             await fetchGameUpdates(client);

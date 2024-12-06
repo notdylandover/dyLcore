@@ -1,11 +1,11 @@
-const { DebugNoDB } = require('../../utils/logging');
+const { debug } = require('../../utils/logging');
 
 module.exports = {
     name: 'debug',
     execute(info) {
         const formattedInfo = reformatDebug(info);
         if (formattedInfo) {
-            DebugNoDB(formattedInfo);
+            debug(formattedInfo);
         }
     }
 };

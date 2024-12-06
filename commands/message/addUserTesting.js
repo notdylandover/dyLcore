@@ -7,6 +7,7 @@ const testingFilePath = path.join(__dirname, '..', '..', 'data', 'testing.json')
 
 module.exports = {
     name: 'addusertesting',
+    private: true,
     async execute(message) {
         try {
             const usernameToAdd = message.content.split(' ')[1];
@@ -42,7 +43,7 @@ module.exports = {
                 return message.reply({ embeds: [warnEmbed], allowedMentions: { repliedUser: false }});
             }
         } catch (error) {
-            CommandError('adduser', error.stack);
+            CommandError(module.exports.name, error.stack);
             return await message.react('❌');
         }
     }

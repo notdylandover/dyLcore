@@ -7,6 +7,6 @@ module.exports = {
         const guildId = `\x1b[3m${guild.id}\x1b[23m`;
         const guildName = guild.name;
         const guildMembers = guild.memberCount;
-        guildAvailable(`\u2713\t`.green + `${guildId} - ${guildName} - ${guildMembers} Members`);
+        guildAvailable(`${guildId} - ${guildName} - ${guildMembers} Members`);
     },
 };

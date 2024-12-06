@@ -1,3 +1,5 @@
+const { AutoModerationRuleTriggerType, AutoModerationActionType } = require('discord.js');
+
 async function getAutomodRules(guildId, client) {
     try {
         const guild = await client.guilds.fetch(guildId);
@@ -11,9 +13,9 @@ async function getAutomodRules(guildId, client) {
             id: rule.id,
             name: rule.name,
             enabled: rule.enabled,
-            triggerType: rule.triggerType,
+            triggerType: AutoModerationRuleTriggerType[rule.triggerType],
             actions: rule.actions.map(action => ({
-                type: action.type,
+                type: AutoModerationActionType[action.type],
                 metadata: action.metadata,
             })),
         }));

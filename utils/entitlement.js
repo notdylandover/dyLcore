@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const https = require('https');
-const { Error, TimestampInfo } = require('./logging');
+const { Error, Info, Done } = require('./logging');
 require('dotenv').config();
 
 const userCache = {};
@@ -65,9 +65,9 @@ async function fetchAllEntitlements() {
         }
     };
 
-    TimestampInfo('Fetching entitlements...');
+    Info('Fetching entitlements...');
 
-    return new Promise((resolve, reject) => {
+    new Promise((resolve, reject) => {
         const req = https.request(options, async (res) => {
             let data = '';
 
@@ -96,6 +96,8 @@ async function fetchAllEntitlements() {
         });
 
         req.end();
+
+        Done('Fetched entitlements');
     });
 }
 

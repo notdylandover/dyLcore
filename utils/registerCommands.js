@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { Error, Warn, CommandRegisterDone, CommandRegisterFailed, TimestampInfo } = require('./logging');
+const { Error, Warn, Info, Done } = require('./logging');
 
 const fs = require('fs');
 const path = require('path');
@@ -37,7 +37,7 @@ const updateCommands = () => {
                 }
             } catch (error) {
                 invalidCommands.push(file);
-                CommandRegisterFailed(`Error loading command ${file}:\n${error.stack}`);
+                Error(`Error loading command ${file}:\n${error.stack}`);
             }
         }
     });
@@ -54,7 +54,7 @@ const registerCommands = async (client) => {
     const rest = new REST({ version: '10' }).setToken(client.token);
 
     try {
-        TimestampInfo(`Registering ${commands.length} commands...`);
+        Info(`Registering ${commands.length} commands...`);
 
         const registeredCommands = await rest.put(Routes.applicationCommands(client.user.id), {
             body: commands,
@@ -72,7 +72,7 @@ const registerCommands = async (client) => {
         fs.mkdirSync(path.dirname(commandsFilePath), { recursive: true });
         fs.writeFileSync(commandsFilePath, JSON.stringify(commandsWithIds, null, 2));
 
-        CommandRegisterDone(`${registeredCommands.length} commands registered`);
+        Done(`Registered ${registeredCommands.length} commands`);
     } catch (error) {
         Error('Failed to register commands:', error);
     }
