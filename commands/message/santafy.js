@@ -59,11 +59,11 @@ module.exports = {
                 const hatWidth = faceWidth * 3;
                 const hatHeight = hatWidth;
 
-                const hatX = eyeCenterX - hatWidth / 2;
+                const hatX = eyeCenterX - hatWidth / 2 + 10;
                 const hatY = eyeCenterY - hatHeight * 0.8;
 
                 ctx.save();
-                ctx.translate(eyeCenterX + 50, eyeCenterY - hatHeight * 0.1);
+                ctx.translate(eyeCenterX * 1.02, eyeCenterY - hatHeight * 0.1);
                 ctx.rotate(angle);
                 ctx.drawImage(hatImage, -hatWidth / 2, -hatHeight, hatWidth, hatHeight);
                 ctx.restore();
