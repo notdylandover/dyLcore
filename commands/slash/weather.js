@@ -1,8 +1,24 @@
 const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { ErrorEmbed, WeatherEmbed } = require('../../utils/embeds');
-const { CommandError } = require("../../utils/logging");
+const { CommandError, Info } = require("../../utils/logging");
 const { EMOJIS } = require('../../utils/constants');
-const { getCurrentTemperature, getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji, getCoordinates } = require('../../utils/weather');
+const {
+    getCurrentWeather,
+    getForecastIcon,
+    getNearestForecastOffice,
+    getForecastZone,
+    getZoneData,
+    getTimeZone,
+    getWeatherAlerts,
+    generateAlertURL,
+    getWeeklyForecast,
+    getHourlyForecast,
+    getRadarImage,
+    getWeatherEmoji,
+    getCoordinates,
+    getAirQualityIndex,
+    getAQIDescription
+} = require('../../utils/weather');
 
 module.exports = {
     premium: false,
@@ -25,31 +41,37 @@ module.exports = {
             const { lat, lon } = await getCoordinates(zip);
 
             const forecastProperties = await getNearestForecastOffice(lat, lon);
-            const weeklyForecast = await getWeeklyForecast(forecastProperties.forecast);
+            const city = forecastProperties.city;
+            const state = forecastProperties.state;
 
-            const currentTemperature = await getCurrentTemperature(lat, lon);
+            const weeklyForecast = await getWeeklyForecast(forecastProperties.forecast);
             const currentCondition = weeklyForecast[0]?.condition;
+
+            const hourlyForecast = await getHourlyForecast(forecastProperties.forecastHourly);
+
+            const currentWeather = await getCurrentWeather(lat, lon);
+            const { temperature: currentTemperature, feelsLike, humidity, windSpeed } = currentWeather;
+
             const currentWeatherEmoji = getWeatherEmoji(currentCondition);
             const emojiIdMatch = currentWeatherEmoji.match(/:(\d+)>/);
             const emojiId = emojiIdMatch ? emojiIdMatch[1] : null;
             const currentConditionEmoji = emojiId ? `https://cdn.discordapp.com/emojis/${emojiId}.png` : null;
-            const zoneData = await getZoneData(lat, lon);
 
+            const zoneData = await getZoneData(lat, lon);
             const icon = await getForecastIcon(weeklyForecast);
             const forecastZone = await getForecastZone(lat, lon);
             const radar = await getRadarImage(forecastProperties.radarStation);
             const timeZone = await getTimeZone(lat, lon);
-
-            const city = forecastProperties.city;
-            const state = forecastProperties.state;
-
             const alerts = await getWeatherAlerts(state, forecastZone);
+
+            const aqi = await getAirQualityIndex(lat, lon);
+            const aqiDescription = getAQIDescription(aqi);
+
+            const location = `${city}, ${state}`;
 
             const dailyData = {};
             const now = new Date();
             const currentDateTime = new Date(now.toLocaleString("en-US", { timeZone }));
-
-            const location = `${city}, ${state}`;
 
             weeklyForecast.forEach(period => {
                 const forecastDateTime = new Date(period.start);
@@ -62,7 +84,6 @@ module.exports = {
                     }
 
                     if (period.name.includes("Night") || period.name === "Tonight") {
-                        // delete data
                         dailyData[dateKey].low = period.temperature;
                     } else {
                         dailyData[dateKey].high = period.temperature;
@@ -70,9 +91,46 @@ module.exports = {
                 }
             });
 
-            const upcomingDays = Object.keys(dailyData).slice(0, 6);
-            let description = '';
+            const hourlyData = [];
+            for (const period of hourlyForecast) {
+                const forecastDateTime = new Date(period.start);
+                const forecastHour = forecastDateTime.getHours();
 
+                const currentHour = currentDateTime.getHours();
+
+                if (forecastDateTime > currentDateTime && forecastHour !== currentHour) {
+                    const time = forecastDateTime.toLocaleTimeString('en-US', {
+                        timeZone,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+
+                    hourlyData.push({
+                        time,
+                        temperature: period.temperature,
+                        condition: period.condition,
+                        emoji: getWeatherEmoji(period.condition)
+                    });
+
+                    if (hourlyData.length === 5) break;
+                }
+            }
+
+            let description =
+                `> \` Feels Like  \` \` ${feelsLike}°F \`\n` +
+                `> \` Humidity    \` \` ${humidity}% \`\n` +
+                `> \` Wind Speed  \` \` ${windSpeed} mph \`\n` +
+                `> \` Air Quality \` \` ${aqi} (${aqiDescription}) \`\n`;
+
+            description += '## Next 5 Hours\n';
+            hourlyData.forEach(period => {
+                description += `> **\` ${period.time} \`** ${period.emoji} \` ${period.temperature}°F \`\n`;
+            });
+
+            const upcomingDays = Object.keys(dailyData).slice(0, 6);
+
+            description += '## Daily Forecast\n';
             upcomingDays.forEach(date => {
                 const { high, low, condition } = dailyData[date];
 
@@ -80,12 +138,12 @@ module.exports = {
                 const lowDisplay = low !== null ? `${low}°F` : '    ';
 
                 const emoji = getWeatherEmoji(condition);
-                description += `**\` ${date} \`** ${emoji} \` ${highDisplay} / ${lowDisplay} \`\n`;
+                description += `> **\`  ${date}  \`** ${emoji} \` ${highDisplay} / ${lowDisplay} \`\n`;
             });
 
             if (alerts.length > 0) {
-                description += '## Alerts\n';
-                
+                description += '\n## Alerts\n';
+
                 const today = new Date().toLocaleDateString('en-US', { timeZone });
 
                 alerts.forEach(alert => {
@@ -94,29 +152,37 @@ module.exports = {
 
                     const expiresDate = expires.toLocaleString('en-US', {
                         timeZone,
-                        hour: 'numeric', 
+                        hour: 'numeric',
                         minute: 'numeric',
                         ...(isToday ? {} : { weekday: 'short' })
                     });
 
-                    const learnMoreUrl = generateAlertURL(zoneData.forecastZone, zoneData.county, zoneData.lat, zoneData.lon, `${city}, ${state}`);
-                    
-                    description += `**${EMOJIS.weather_alert} ${alert.event}**\n-# Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
+                    const learnMoreUrl = generateAlertURL(zoneData.forecastZone, zoneData.county, zoneData.lat, zoneData.lon, location);
+
+                    description += `**${EMOJIS.weather_alert} ${alert.event}**\n- Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
                 });
-            } else {
-                description += '';
             }
-    
-            const embed = WeatherEmbed(currentCondition, currentConditionEmoji, location, currentTemperature, icon, description, radar);
+
+            const embed = WeatherEmbed(
+                currentCondition,
+                currentConditionEmoji,
+                location,
+                currentTemperature,
+                icon,
+                description,
+                radar
+            );
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
+            Info(error.response.status);
+
             const errorEmbed = ErrorEmbed(
-                error.response && error.response.status === 500 
-                ? "Location not found." 
-                : error.message
+                error.response && error.response.status === 500
+                    ? "Location not found."
+                    : error.message
             );
 
             if (interaction.deferred || interaction.replied) {

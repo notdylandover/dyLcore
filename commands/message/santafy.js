@@ -4,7 +4,7 @@ const { createCanvas, loadImage } = require('canvas');
 const { AttachmentBuilder } = require('discord.js');
 
 const path = require('path');
-const tf = require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node-gpu');
 const faceapi = require('@vladmandic/face-api');
 const canvasModule = require('canvas');
 

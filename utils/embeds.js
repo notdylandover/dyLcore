@@ -3,6 +3,41 @@ const { codeblock } = require('./markdown');
 const { format } = require('./ansi');
 const { COLORS, LINKS, TEXT, TWITCHTEST, EMOJIS } = require('./constants');
 
+module.exports.SpeedTestEmbed = function(downloadSpeed, uploadSpeed, ping) {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.speedtest)
+        .setDescription(
+            `${EMOJIS.ico_down} **Download Speed**: \` ${downloadSpeed} Mbps \`\n` +
+            `${EMOJIS.ico_up} **Upload Speed**: \` ${uploadSpeed} Mbps \`\n` +
+            `${EMOJIS.ico_signal} **Ping**: \` ${ping} ms \``
+        )
+        .setFooter({
+            iconURL: LINKS.speedtest,
+            text: `${TEXT.brand} • Ookla`
+        })
+};
+
+module.exports.IconInfoEmbed = function() {
+    return embed = new EmbedBuilder()
+        .setColor(COLORS.default)
+        .setTitle('Icon Info')
+        .setDescription(
+            `${EMOJIS.ico_information} **Style**: Material Rounded\n` +
+            `${EMOJIS.ico_information} **Background Color**: \` #222222 \`\n` +
+            `${EMOJIS.ico_information} **Padding**: Varies with each icon\n` +
+            `${EMOJIS.ico_information} **Roundness**: \` 80% \`\n` +
+            `## Weather Icons\n` +
+            `${EMOJIS.ico_information} **Grey**: \` #AAAAAA \`\n` +
+            `${EMOJIS.ico_information} **Yellow**: \` #FFCC00 \`\n` +
+            `${EMOJIS.ico_information} **Blue**: \` #00AAFF \`\n` +
+            `-# **Last Updated**: 12-6-2024`
+        )
+        .setFooter({
+            iconURL: LINKS.brand,
+            text: TEXT.brand
+        })
+};
+
 module.exports.TicketEmbed = function() {
     return embed = new EmbedBuilder()
         .setColor(COLORS.default)
@@ -456,11 +491,11 @@ module.exports.CoinflipEmbed = function(result) {
 module.exports.BallEmbed = function(author, question, result) {
     const embed = new EmbedBuilder()
         .setColor(COLORS.default)
-        .setDescription(`# 🎱 ${result}`);
+        .setDescription(`## 🎱 \` ${result} \``);
     
     if (question) {
         embed.setAuthor({
-            name: `${author.tag}: ${question}`,
+            name: `${author.displayName}: ${question}`,
             iconURL: author.displayAvatarURL()
         });
     }

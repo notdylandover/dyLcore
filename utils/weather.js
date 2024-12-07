@@ -23,14 +23,43 @@ async function getCoordinates(zip) {
     }
 }
 
-async function getCurrentTemperature(lat, lon) {
+async function getCurrentWeather(lat, lon) {
     try {
         const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${OpenWeatherMapKey}`;
         const response = await axios.get(url);
-        const temperature = response.data.main.temp;
-        return temperature.toFixed(0);
+        const data = response.data;
+
+        const temperature = data.main.temp.toFixed(0);
+        const feelsLike = data.main.feels_like.toFixed(0);
+        const humidity = data.main.humidity;
+        const windSpeed = data.wind.speed.toFixed(0);
+
+        return { temperature, feelsLike, humidity, windSpeed };
     } catch (error) {
-        throw new Error(`Error fetching current temperature: ${error.message}`);
+        throw new Error(`Error fetching current weather data: ${error.message}`);
+    }
+}
+
+function getAQIDescription(aqi) {
+    const descriptions = {
+        1: 'Good',
+        2: 'Fair',
+        3: 'Moderate',
+        4: 'Poor',
+        5: 'Very Poor',
+    };
+    return descriptions[aqi] || 'Unknown';
+}
+
+async function getAirQualityIndex(lat, lon) {
+    try {
+        const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OpenWeatherMapKey}`;
+        const response = await axios.get(url);
+
+        const aqi = response.data.list[0].main.aqi;
+        return aqi;
+    } catch (error) {
+        throw new Error(`Error fetching air quality index: ${error.message}`);
     }
 }
 
@@ -134,7 +163,7 @@ async function getWeeklyForecast(forecastUrl) {
 
         return periods.map(period => {
             let cleanedCondition = period.shortForecast
-                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated|expected with|areas of)\b/gi, '')
+                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated|expected with|areas of|patchy)\b/gi, '')
                 .replace(/chance of \w+/i, '')
                 .replace(/then.*/i, '') 
                 .trim();
@@ -176,6 +205,7 @@ async function getRadarImage(office) {
 
 function getWeatherEmoji(condition) {
     const weatherEmojis = {
+        'Fog': `${EMOJIS.weather_fog}`,
         'Cloudy': `${EMOJIS.weather_cloud}`,
         'Mostly Cloudy': `${EMOJIS.weather_cloud}`,
         'Partly Cloudy': `${EMOJIS.weather_partsun}`,
@@ -184,8 +214,11 @@ function getWeatherEmoji(condition) {
         'Sunny': `${EMOJIS.weather_sun}`,
         'Mostly Sunny': `${EMOJIS.weather_sun}`,
         'Partly Sunny': `${EMOJIS.weather_partsun}`,
+        'Light Rain': `${EMOJIS.weather_rain}`,
+        'Rain': `${EMOJIS.weather_rain}`,
         'Rain Showers': `${EMOJIS.weather_rain}`,
         'Showers And Thunderstorms': `${EMOJIS.weather_storm}`,
+        'Showers And Thunderstorms Likely': `${EMOJIS.weather_storm}`,
         'Tropical Storm': `${EMOJIS.weather_tropicalstorm}`,
         'Tropical Storm Hurricane': `${EMOJIS.weather_hurricane}`,
         'Hurricane': `${EMOJIS.weather_hurricane}`,
@@ -195,4 +228,20 @@ function getWeatherEmoji(condition) {
     return weatherEmojis[condition] || '❔';
 }
 
-module.exports = { getCurrentTemperature, getForecastIcon, getNearestForecastOffice, getForecastZone, getZoneData, getTimeZone, getWeatherAlerts, generateAlertURL, getWeeklyForecast, getHourlyForecast, getRadarImage, getWeatherEmoji, getCoordinates };
+module.exports = {
+    getCurrentWeather,
+    getForecastIcon,
+    getNearestForecastOffice,
+    getForecastZone,
+    getZoneData,
+    getTimeZone,
+    getWeatherAlerts,
+    generateAlertURL,
+    getWeeklyForecast,
+    getHourlyForecast,
+    getRadarImage,
+    getWeatherEmoji,
+    getCoordinates,
+    getAirQualityIndex,
+    getAQIDescription
+};
