@@ -2,6 +2,7 @@ const { Debug, CommandError } = require('../../utils/logging');
 
 module.exports = {
     name: 'react',
+    enabled: true,
     private: true,
     async execute(message) {
         const args = message.content.split(' ').slice(1);

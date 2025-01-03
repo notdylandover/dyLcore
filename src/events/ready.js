@@ -8,21 +8,6 @@ const setPresence = require("../../utils/presence");
 
 const cron = require("node-cron");
 
-const channels = [
-    'atuesports',
-    'bunkroger',
-    'cowboyblaze',
-    'theladyelaine',
-    'maio_streams',
-    'drifloom_',
-    'tkrak3n',
-    'crumbdumbster',
-    'not_dyLn',
-    'nerdyc160',
-    'wotuh',
-    'tbucket2314'
-];
-
 module.exports = {
     name: 'ready',
     async execute(client) {
@@ -33,8 +18,8 @@ module.exports = {
             await fetchGameUpdates(client);
 
             cron.schedule("*/10 * * * * *", async () => {
-                await isLive(client, channels);
                 await setPresence(client);
+                await isLive(client);
                 await fetchGameUpdates(client);
             });
         } catch (error) {

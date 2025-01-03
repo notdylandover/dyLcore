@@ -3,13 +3,14 @@ const { WarnEmbed } = require('../../utils/embeds');
 
 module.exports = {
     name: 'me',
+    enabled: true,
     private: true,
     async execute(message) {
         try {
             const botMessage = message.content.split(' ').slice(1).join(' ');
 
             if (!botMessage) {
-                const warnEmbed = WarnEmbed('Please provide a message to send as the bot.');
+                const warnEmbed = WarnEmbed('A message wasn\'t detected.');
                 return message.reply({ embeds: [warnEmbed], allowedMentions: { repliedUser: false }});
             }
             

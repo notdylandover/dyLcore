@@ -15,22 +15,24 @@ module.exports = {
                 return;
             }
 
+            if (newMessage.embeds.length > 0) {
+                return;
+            }
+
             let serverName = newMessage.guild ? newMessage.guild.name : "Direct Message";
             let channelId = newMessage.channel ? newMessage.channel.id : null;
             let channelName = newMessage.channel ? newMessage.channel.name : "Direct Message";
             let globalUsername = newMessage.author.tag;
             let authorAvatar = newMessage.author ? newMessage.author.displayAvatarURL() : newMessage.author.defaultAvatarURL();
 
-            Debug(`${serverName} - ${channelName} - ${globalUsername}`);
-
             let oldMessageContent = oldMessage ? oldMessage.content.replace(/[\r\n]+/g, ' ') : "[No Content]";
             let newMessageContent = newMessage ? newMessage.content.replace(/[\r\n]+/g, ' ') : "[No Content]";
 
             if (oldMessage.embeds.length > 0) {
-                oldMessageContent += ' EMBED ';
+                oldMessageContent += ' EMBED '.bgYellow.black;
             }
             if (newMessage.embeds.length > 0) {
-                newMessageContent += ' EMBED ';
+                newMessageContent += ' EMBED '.bgYellow.black;
             }
 
             if (oldMessageContent === newMessageContent && oldMessage.embeds.length === newMessage.embeds.length) {
@@ -39,11 +41,11 @@ module.exports = {
 
             let attachmentNote = '';
 
-            if (oldMessage.attachments.size > 0) {
+            if (oldMessage.attachments.size > 0 && newMessage.attachments.size === 0) {
                 attachmentNote = '\n-# This message had attachments.';
             }
 
-            if (newMessage.attachments.size > 0) {
+            if (newMessage.attachments.size > 0 && oldMessage.attachments.size === 0) {
                 attachmentNote += '\n-# This message has attachments.';
             }
 
@@ -63,7 +65,8 @@ module.exports = {
                 const alertsChannel = newMessage.guild.channels.cache.get(alertsChannelId);
                 
                 if (alertsChannel) {
-                    const embed = messageUpdateAlert(channelId, authorAvatar, globalUsername, oldMessageContent, newMessageContent, attachmentNote);
+                    const messageLink = `https://discord.com/channels/${newMessage.guild.id}/${newMessage.channel.id}/${newMessage.id}`;
+                    const embed = messageUpdateAlert(messageLink, channelId, authorAvatar, globalUsername, oldMessageContent, newMessageContent, attachmentNote);
                     await alertsChannel.send({ embeds: [embed] });
                 }
             }

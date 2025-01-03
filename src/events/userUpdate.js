@@ -21,14 +21,14 @@ module.exports = {
 
         if (oldUser.avatar !== newUser.avatar) {
             changes.push(`${username} updated their avatar`);
-            const avatarUrl = newUser.displayAvatarURL({ format: 'png', size: 1024 });
+            const avatarUrl = newUser.displayAvatarURL({ format: 'png', size: 4096 });
             const avatarPath = path.join(mediaDir, 'avatar.png');
             await downloadFile(avatarUrl, avatarPath);
         }
 
         if (oldUser.banner !== newUser.banner) {
             changes.push(`${username} updated their banner`);
-            const bannerUrl = newUser.bannerURL({ format: 'png', size: 1024 });
+            const bannerUrl = newUser.bannerURL({ format: 'png', size: 4096 });
             const bannerPath = path.join(mediaDir, 'banner.png');
             await downloadFile(bannerUrl, bannerPath);
         }

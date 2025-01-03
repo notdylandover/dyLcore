@@ -1,4 +1,4 @@
-const { Error, Debug, Info } = require('./logging');
+const { Error, Debug } = require('./logging');
 
 require('dotenv').config();
 
@@ -21,23 +21,48 @@ require('dotenv').config();
 //     }]
 // });
 
+let presenceMode = 0;
+
 module.exports = async (client) => {
     try {
-        const uniqueUsers = new Set();
+        let totalMembers = 0;
+        const totalGuilds = client.guilds.cache.size;
 
-        client.guilds.cache.forEach(guild => {
-            guild.members.cache.forEach(member => {
-                uniqueUsers.add(member.user.id);
+        if (presenceMode === 0) {
+            const uniqueUsers = new Set();
+            client.guilds.cache.forEach(guild => {
+                guild.members.cache.forEach(member => {
+                    uniqueUsers.add(member.user.id);
+                });
             });
-        });
+            totalMembers = uniqueUsers.size;
+        }
 
-        const totalMembers = uniqueUsers.size;
+        let activityName = '';
+        let activityType = 4;
+
+        switch (presenceMode) {
+            case 0:
+                activityName = `${totalMembers} users`;
+                activityType = 3;
+                break;
+            case 1:
+                activityName = `${totalGuilds} servers`;
+                activityType = 3;
+                break;
+            case 2:
+                activityName = '🎉 Happy New Year!';
+                activityType = 4;
+                break;
+        }
+
+        presenceMode = (presenceMode + 1) % 3;
 
         client.user.setPresence({
             status: 'online',
             activities: [{
-                name: `${totalMembers} members`,
-                type: 3,
+                name: activityName,
+                type: activityType,
                 url: 'https://www.twitch.tv/not_dyLn'
             }]
         });

@@ -41,6 +41,7 @@ const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
 
         if (currentNodeVersion !== latestNodeVersion) {
             Version(`NodeJS ${process.version}` + `\t\t` + ` A new version is available: v${latestNodeVersion} `.bgGreen.black);
+            Debug(`https://nodejs.org/dist/${latestNodeVersion}/node-${latestNodeVersion}-x64.msi`);
         } else {
             Version(`NodeJS ${process.version}`);
         }

@@ -82,6 +82,7 @@ module.exports = {
                         line = testLine;
                     }
                 }
+                
                 lines.push(line);
 
                 for (let j = 0; j < lines.length; j++) {
@@ -101,14 +102,18 @@ module.exports = {
             ctx.font = '16px Arial';
             ctx.fillText(`- ${user.displayName}`, contentX, authorY);
 
-            const tempDir = path.join(__dirname, '../temp');
+            const tempDir = path.join(__dirname, '..', '..', 'temp');
+
             if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir, { recursive: true });
             }
+
             const quoteImagePath = path.join(tempDir, 'quote.png');
             const out = fs.createWriteStream(quoteImagePath);
             const stream = canvas.createPNGStream();
+
             stream.pipe(out);
+
             out.on('finish', async () => {
                 await interaction.editReply({ files: [quoteImagePath] });
 

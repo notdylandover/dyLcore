@@ -4,6 +4,7 @@ require('dotenv').config();
 
 module.exports = {
     name: 'rl',
+    enabled: true,
     private: true,
     async execute(message) {
         const embed = DoneEmbed(`Reloaded Manager`);

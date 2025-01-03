@@ -1,5 +1,6 @@
-const { attachmentDownload, messageCreate, Error, interactionCreate } = require("../../utils/logging");
+const { attachmentDownload, messageCreate, Error, interactionCreate, Debug } = require("../../utils/logging");
 const { analyzeLabels } = require("../../utils/analyzeImage");
+
 const fs = require("fs");
 const path = require("path");
 
@@ -50,6 +51,10 @@ module.exports = {
             let authorUsername = message.author ? message.author.username : "Unknown User";
             let messageContent = message.content.replace(/[\r\n]+/g, " ");
 
+            if (message.embeds.length > 0) {
+                messageContent += ' EMBED '.bgYellow.black;
+            }
+
             if (guildId === null) {
                 return messageCreate(`${`DM`.cyan} - ${authorUsername.cyan} - ${messageContent.white}`);
             }
@@ -80,7 +85,6 @@ module.exports = {
                     return;
                 }
             }
-
             
             if (messageContent.startsWith(commandPrefix)) {
                 const commandName = messageContent.slice(commandPrefix.length).split(' ')[0];
@@ -92,6 +96,8 @@ module.exports = {
                         if (message.author && message.author.id === allowedUserId) {
                             return await command.execute(message);
                         }
+                    } else if (!command.enabled) {
+                        return;
                     } else if (!command.private) {
                         return await command.execute(message);
                     } else {

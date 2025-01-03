@@ -2,6 +2,7 @@ const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, 
 const { MediaEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 const { exec } = require('child_process');
+
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');

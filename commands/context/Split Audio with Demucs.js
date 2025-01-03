@@ -3,6 +3,7 @@ const { ErrorEmbed, SuccessEmbed, FileEmbed } = require("../../utils/embeds");
 const { PremiumFileEmbed } = require("../../utils/PremiumEmbeds");
 const { CommandError, Debug, Error } = require("../../utils/logging");
 const { exec } = require('child_process');
+
 const fs = require('fs');
 const path = require('path');
 const https = require('https');

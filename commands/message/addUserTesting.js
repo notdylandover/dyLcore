@@ -1,12 +1,14 @@
-const fs = require('fs');
-const path = require('path');
 const { CommandError, Error } = require('../../utils/logging');
 const { ErrorEmbed, WarnEmbed, SuccessEmbed } = require('../../utils/embeds');
+
+const fs = require('fs');
+const path = require('path');
 
 const testingFilePath = path.join(__dirname, '..', '..', 'data', 'testing.json');
 
 module.exports = {
     name: 'addusertesting',
+    enabled: true,
     private: true,
     async execute(message) {
         try {

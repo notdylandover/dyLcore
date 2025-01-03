@@ -65,10 +65,34 @@ function magenta(m) {
     console.info(`  \t${time.grey}\t${color(m)}`);
 }
 
+function green(m) {
+    const color = colors.green;
+    const time = new Date().toLocaleTimeString();
+    console.info(`  \t${time.grey}\t${color(m)}`);
+}
+
+function yellow(m) {
+    const color = colors.yellow;
+    const time = new Date().toLocaleTimeString();
+    console.info(`  \t${time.grey}\t${color(m)}`);
+}
+
 function version(m) {
     const color = colors.cyan;
     const time = new Date().toLocaleTimeString();
     console.info(`  \t${time.grey}\t${color(m)}`);
+}
+
+function removed(m) {
+    const color = colors.red;
+    const time = new Date().toLocaleTimeString();
+    console.info(`${color('- ')}\t${color(time)}\t${color(m)}`);
+}
+
+function added(m) {
+    const color = colors.green;
+    const time = new Date().toLocaleTimeString();
+    console.info(`${color('+ ')}\t${color(time)}\t${color(m)}`);
 }
 
 // NEW Custom
@@ -302,39 +326,39 @@ module.exports.messageCreate = function (m) {
 };
 
 module.exports.messageDelete = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messageDeleteBulk = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messagePollVoteAdd = function (m) {
-    done(m);
+    added(m);
 };
 
 module.exports.messagePollVoteRemove = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messageReactionAdd = function (m) {
-    done(m);
+    added(m);
 };
 
 module.exports.messageReactionRemove = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messageReactionRemoveAll = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messageReactionRemoveEmoji = function (m) {
-    red(m);
+    removed(m);
 };
 
 module.exports.messageUpdate = function (m) {
-    warn(m);
+    yellow(m);
 };
 
 module.exports.presenceUpdate = function (m) {
