@@ -12,8 +12,6 @@ module.exports = {
             const embedChanges = [];
             const fileChanges = [];
 
-            Debug(JSON.stringify(newMember, null, 4));
-
             if (oldMember.avatar !== newMember.avatar) {
                 consoleChanges.push(`${newMember.user.username} updated their avatar`);
                 embedChanges.push(`**<@${newMember.user.id}> updated their avatar:**`);

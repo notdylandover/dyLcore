@@ -278,7 +278,7 @@ module.exports.guildMembersChunk = function (m) {
 };
 
 module.exports.guildMemberUpdate = function (m) {
-    warn(m);
+    done(m);
 };
 
 module.exports.guildScheduledEventCreate = function (m) {
