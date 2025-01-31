@@ -17,7 +17,7 @@ module.exports = async function whitelistUserModal(interaction) {
 
     if (!user) {
         const errorEmbed = ErrorEmbed('User not found.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     interactionCreate(`${interaction.guild.name.cyan} - ${('#' + interaction.channel.name).cyan} - ${interaction.user.username.cyan} - ${("Whitelist User").magenta} ${action.magenta}:${(user.user.tag).magenta}`);
@@ -30,19 +30,19 @@ module.exports = async function whitelistUserModal(interaction) {
 
     if (!channelInfo) {
         const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     if (channelInfo.ownerId !== member.id) {
         const errorEmbed = ErrorEmbed('You do not own this channel.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     const voiceChannel = interaction.guild.channels.cache.get(member.voice.channel.id);
 
     if (channelInfo.whitelist.includes(user.id)) {
         const errorEmbed = ErrorEmbed(`User <@${user.user.id}> is already whitelisted.`);
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     const blacklistIndex = channelInfo.blacklist.indexOf(user.id);
@@ -57,5 +57,5 @@ module.exports = async function whitelistUserModal(interaction) {
 
     fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
     const successEmbed = SuccessEmbedRemodal(`User <@${user.user.id}> has been whitelisted`);
-    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
 };

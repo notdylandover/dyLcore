@@ -55,7 +55,7 @@ module.exports = async function createTicket(interaction) {
     const submitted = await interaction.awaitModalSubmit({ filter, time: 60000, max: 1 }).catch(() => null);
 
     if (!submitted) {
-        return await interaction.followUp({ content: 'You did not provide ticket details in time.', ephemeral: true });
+        return await interaction.followUp({ content: 'You did not provide ticket details in time.', flags: MessageFlags.Ephemeral });
     }
 
     const subject = submitted.fields.getTextInputValue('ticketSubject');
@@ -63,13 +63,13 @@ module.exports = async function createTicket(interaction) {
     const priority = parseInt(submitted.fields.getTextInputValue('ticketPriority'), 10);
 
     if (priority < 1 || priority > 5) {
-        return await submitted.reply({ content: 'Priority must be between 1 and 5.', ephemeral: true });
+        return await submitted.reply({ content: 'Priority must be between 1 and 5.', flags: MessageFlags.Ephemeral });
     }
 
     const ticketCategory = guild.channels.cache.find(c => c.name === 'Tickets' && c.type === ChannelType.GuildCategory);
     if (!ticketCategory) {
         const errorEmbed = ErrorEmbed('Ticket category does not exist.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     const ticketChannel = await guild.channels.create({
@@ -137,5 +137,5 @@ module.exports = async function createTicket(interaction) {
     fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
 
     const successEmbed = SuccessEmbedRemodal(`Ticket created: ${ticketChannel}`);
-    await submitted.reply({ embeds: [successEmbed], ephemeral: true });
+    await submitted.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
 };

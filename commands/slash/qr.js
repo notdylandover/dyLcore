@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
 const { Error, CommandError } = require("../../utils/logging");
 
@@ -9,6 +9,7 @@ const QRCode = require('qrcode');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName("qr")
         .setDescription('Convert a link to a QR code')
@@ -84,7 +85,7 @@ module.exports = {
                     const errorEmbed = ErrorEmbed(error.message);
                     await interaction.editReply({
                         embeds: [errorEmbed],
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                     return;
                 }
@@ -92,7 +93,7 @@ module.exports = {
                 await interaction.editReply({
                     embeds: [],
                     files: [qrCodePath],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
 
                 fs.unlinkSync(qrCodePath);
@@ -105,12 +106,12 @@ module.exports = {
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({
                     embeds: [errorEmbed],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             } else {
                 await interaction.reply({
                     embeds: [errorEmbed],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
         }

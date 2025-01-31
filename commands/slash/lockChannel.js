@@ -1,9 +1,10 @@
-const { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('lockchannel')
         .setDescription('Lock the channel for everyone')
@@ -11,7 +12,7 @@ module.exports = {
         .setContexts(InteractionContextType.Guild, InteractionContextType.PrivateChannel)
         .setIntegrationTypes(ApplicationIntegrationType.GuildInstall),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, { SendMessages: false });

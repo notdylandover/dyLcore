@@ -1,11 +1,13 @@
 // src/commands/slash/live.js
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { SuccessEmbed, ErrorEmbed } = require('../../utils/embeds');
 
 const path = require('path');
 const fs = require('fs');
 
 module.exports = {
+    premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('live')
         .setDescription('Manage live users')
@@ -33,6 +35,8 @@ module.exports = {
             )
         ),
     async execute(interaction) {
+        await interaction.deferReply();
+
         try {
             const guildId = interaction.guild.id;
             const serverConfigPath = path.join(__dirname, '../../data/servers', `${guildId}.json`);
@@ -43,9 +47,9 @@ module.exports = {
             }
 
             if (serverConfig.liveChannelId === undefined) {
-                return interaction.reply({ embeds: [ErrorEmbed('Please set a live channel first.')], ephemeral: true });
+                return interaction.reply({ embeds: [ErrorEmbed('Please set a live channel first.')], flags: MessageFlags.Ephemeral });
             } else if (serverConfig.liveRoleId === undefined) {
-                return interaction.reply({ embeds: [ErrorEmbed('Please set a live role first.')], ephemeral: true });
+                return interaction.reply({ embeds: [ErrorEmbed('Please set a live role first.')], flags: MessageFlags.Ephemeral });
             }
 
             if (!serverConfig.twitchUsers) {
@@ -59,7 +63,7 @@ module.exports = {
                 const discordUser = interaction.options.getUser('discorduser');
 
                 if (serverConfig.twitchUsers.find(user => user.twitchUsername === twitchUsername)) {
-                    return interaction.reply({ embeds: [ErrorEmbed('User already exists.')], ephemeral: true });
+                    return interaction.reply({ embeds: [ErrorEmbed('User already exists.')], flags: MessageFlags.Ephemeral });
                 }
 
                 serverConfig.twitchUsers.push({
@@ -75,7 +79,7 @@ module.exports = {
                     description += `\nThey will also recieve the live role configured.`;
                 }
 
-                return interaction.reply({ embeds: [SuccessEmbed(description)], ephemeral: true });
+                return interaction.reply({ embeds: [SuccessEmbed(description)], flags: MessageFlags.Ephemeral });
             }
 
             if (subcommand === 'removeuser') {
@@ -83,13 +87,13 @@ module.exports = {
                 const index = serverConfig.twitchUsers.findIndex(user => user.twitchUsername === twitchUsername);
 
                 if (index === -1) {
-                    return interaction.reply({ embeds: [ErrorEmbed('User not found.')], ephemeral: true });
+                    return interaction.reply({ embeds: [ErrorEmbed('User not found.')], flags: MessageFlags.Ephemeral });
                 }
 
                 serverConfig.twitchUsers.splice(index, 1);
                 fs.writeFileSync(serverConfigPath, JSON.stringify(serverConfig, null, 2));
 
-                return interaction.reply({ embeds: [SuccessEmbed(`Removed the Twitch user \` ${twitchUsername} \` from live notifications.`)], ephemeral: true });
+                return interaction.reply({ embeds: [SuccessEmbed(`Removed the Twitch user \` ${twitchUsername} \` from live notifications.`)], flags: MessageFlags.Ephemeral });
             }
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
@@ -97,9 +101,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

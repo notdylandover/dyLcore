@@ -12,19 +12,19 @@ module.exports = async function claimTicket(interaction) {
     const serverData = JSON.parse(fs.readFileSync(serverDataPath, 'utf-8'));
 
     if (!serverData.activeTickets || !serverData.activeTickets[ticketChannel.id]) {
-        return await interaction.reply({ content: 'This ticket does not exist.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket does not exist.', flags: MessageFlags.Ephemeral });
     }
 
     const ticketData = serverData.activeTickets[ticketChannel.id];
 
     if (ticketData.agent) {
-        return await interaction.reply({ content: 'This ticket has already been claimed.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket has already been claimed.', flags: MessageFlags.Ephemeral });
     }
 
     const ticketModeratorRole = interaction.guild.roles.cache.find(role => role.name === 'Ticket Moderator');
     
     if (!ticketModeratorRole || !interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
-        return await interaction.reply({ content: 'You do not have permission to claim this ticket.', ephemeral: true });
+        return await interaction.reply({ content: 'You do not have permission to claim this ticket.', flags: MessageFlags.Ephemeral });
     }
 
     ticketData.agent = interaction.user.username;

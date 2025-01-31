@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const { ErrorEmbed, SuccessEmbedRemodal } = require('../../../../utils/embeds');
 const fs = require('fs');
 const path = require('path');
@@ -7,7 +8,7 @@ module.exports = async function lockChannel(interaction) {
 
     if (!member.voice.channel) {
         const errorEmbed = ErrorEmbed('You are not in a voice channel.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     const settingsFilePath = path.resolve(__dirname, `../../../../data/servers/${interaction.guild.id}.json`);
@@ -17,12 +18,12 @@ module.exports = async function lockChannel(interaction) {
 
     if (!channelInfo) {
         const errorEmbed = ErrorEmbed('You are not in a created voice channel.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     if (channelInfo.ownerId !== member.id) {
         const errorEmbed = ErrorEmbed('You do not own this channel.');
-        return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
 
     const voiceChannel = interaction.guild.channels.cache.get(member.voice.channel.id);
@@ -34,12 +35,12 @@ module.exports = async function lockChannel(interaction) {
             Connect: true
         });
         const unlockEmbed = SuccessEmbedRemodal('Channel has been unlocked. Everyone can connect.');
-        await interaction.reply({ embeds: [unlockEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [unlockEmbed], flags: MessageFlags.Ephemeral });
     } else {
         await voiceChannel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
             Connect: false
         });
         const lockEmbed = SuccessEmbedRemodal('Channel has been locked. Only the owner can connect.');
-        await interaction.reply({ embeds: [lockEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [lockEmbed], flags: MessageFlags.Ephemeral });
     }
 };

@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder, Role, PermissionsBitField, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, SlashCommandSubcommandBuilder, ChannelType, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ButtonStyle, ButtonBuilder, ActionRowBuilder, MessageFlags } = require('discord.js');
 const { EMOJIS } = require('../../utils/constants');
+const { CommandError } = require('../../utils/logging');
 const { JoinToCreateVC, SuccessEmbedRemodal, ErrorEmbed, TicketEmbed } = require('../../utils/embeds');
 
 const fs = require('fs');
@@ -7,6 +8,7 @@ const path = require('path');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('setup')
         .setDescription('Manage features for this server')
@@ -196,9 +198,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

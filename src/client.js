@@ -8,9 +8,13 @@ const { exec } = require('child_process');
 require('dotenv').config();
 
 const Discord = require('discord.js');
+
 const { version: DJSVersion } = Discord;
 
-const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
+const client = new Discord.Client({
+    intents: INTENTS,
+    partials: PARTIALS
+});
 
 (async () => {
     try {
@@ -41,7 +45,7 @@ const client = new Discord.Client({ intents: INTENTS, partials: PARTIALS });
 
         if (currentNodeVersion !== latestNodeVersion) {
             Version(`NodeJS ${process.version}` + `\t\t` + ` A new version is available: v${latestNodeVersion} `.bgGreen.black);
-            Debug(`https://nodejs.org/dist/${latestNodeVersion}/node-${latestNodeVersion}-x64.msi`);
+            Debug(`https://nodejs.org/dist/v${latestNodeVersion}/node-v${latestNodeVersion}-x64.msi`);
         } else {
             Version(`NodeJS ${process.version}`);
         }

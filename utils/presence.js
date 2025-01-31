@@ -50,13 +50,9 @@ module.exports = async (client) => {
                 activityName = `${totalGuilds} servers`;
                 activityType = 3;
                 break;
-            case 2:
-                activityName = '🎉 Happy New Year!';
-                activityType = 4;
-                break;
         }
 
-        presenceMode = (presenceMode + 1) % 3;
+        presenceMode = (presenceMode + 1) % 2;
 
         client.user.setPresence({
             status: 'online',

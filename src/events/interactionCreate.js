@@ -41,6 +41,10 @@ module.exports = {
             
                 try {
                     const command = require(commandFilePath);
+
+                    if (!command.enabled) {
+                        return;
+                    }
             
                     if (command.premium) {
                         const entitlement = await getUserEntitlement(username);
@@ -56,7 +60,7 @@ module.exports = {
             
                         if (!isTestingUser && (!entitlement || !entitlement.skus || entitlement.skus.length === 0)) {
                             const errorEmbed = ErrorEmbed('You do not have access to this premium command.');
-                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                            return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                         }
                     }
             
@@ -68,9 +72,9 @@ module.exports = {
                     const errorEmbed = ErrorEmbed(error.message);
             
                     if (interaction.deferred || interaction.replied) {
-                        await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                     } else {
-                        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                     }
                 }
             } else if (interaction.isContextMenuCommand()) {
@@ -94,7 +98,7 @@ module.exports = {
             
                         if (!isTestingUser && (!entitlement || !entitlement.skus || entitlement.skus.length === 0)) {
                             const errorEmbed = ErrorEmbed('You do not have access to this premium command.');
-                            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                            return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                         }
                     }
             
@@ -106,9 +110,9 @@ module.exports = {
                     const errorEmbed = ErrorEmbed(error.message);
             
                     if (interaction.deferred || interaction.replied) {
-                        await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                     } else {
-                        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                     }
                 }
             } else if (interaction.isButton()) {
@@ -155,9 +159,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

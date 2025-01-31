@@ -20,23 +20,23 @@ module.exports = async function confirmCloseTicket(interaction) {
     const serverData = JSON.parse(fs.readFileSync(serverDataPath, 'utf-8'));
 
     if (!serverData.activeTickets || !serverData.activeTickets[ticketChannel.id]) {
-        return await interaction.reply({ content: 'This ticket does not exist.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket does not exist.', flags: MessageFlags.Ephemeral });
     }
 
     const ticketData = serverData.activeTickets[ticketChannel.id];
 
     if (interaction.user.id !== ticketData.requester.id) {
-        return await interaction.reply({ content: 'Only the ticket requester can confirm the closure.', ephemeral: true });
+        return await interaction.reply({ content: 'Only the ticket requester can confirm the closure.', flags: MessageFlags.Ephemeral });
     }
 
     if (ticketData.status === "Closed") {
-        return await interaction.reply({ content: 'This ticket is already closed.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket is already closed.', flags: MessageFlags.Ephemeral });
     }
 
     ticketData.status = "Closed"; 
     fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2)); 
 
     updateChannelName(ticketChannel, "closed");
-    await interaction.reply({ content: 'The ticket has been successfully closed.', ephemeral: true });
+    await interaction.reply({ content: 'The ticket has been successfully closed.', flags: MessageFlags.Ephemeral });
     return ticketChannel.send(`The ticket has been closed by ${interaction.user.username}.`);
 };

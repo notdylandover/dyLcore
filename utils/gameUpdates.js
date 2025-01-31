@@ -4,10 +4,9 @@ const fetch = require('node-fetch');
 
 const { LINKS } = require('./constants');
 const { GameUpdateEmbed } = require('./embeds');
-const { Info, Error } = require('./logging');
+const { Debug, Error } = require('./logging');
 
 const DATA_FILE = path.join(__dirname, "..", "data", "lastGameUpdates.json");
-const MONITORED_FILE = path.join(__dirname, "..", "data", "gameUpdates.json");
 const SERVERS_DATA_PATH = path.join(__dirname, "..", "data", "servers");
 
 async function readJSON(filePath) {
@@ -37,7 +36,11 @@ function formatPatchNotes(contents) {
     return contents.trim();
 }
 
-async function checkForRobloxUpdates(universeId) {
+async function MarvelRivals() {
+    return { updated: true, /* other data */ };
+}
+
+async function Roblox(universeId) {
     const apiUrl = `https://games.roblox.com/v1/games?universeIds=${universeId}`;
 
     try {
@@ -76,13 +79,13 @@ async function checkForRobloxUpdates(universeId) {
     }
 }
 
-async function checkForSteamUpdates(appId) {
+async function Steam(appId, serverConfig) {
     const newsApiUrl = `https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=${appId}&count=5&format=json`;
     const appDetailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}`;
 
     try {
-        const data = await readJSON(DATA_FILE);
-        const lastKnownUpdate = data.Steam?.[appId]?.lastUpdatedTimestamp || 0;
+        const steamData = serverConfig.gameUpdates.Steam?.[appId];
+        const lastKnownUpdate = steamData?.lastUpdatedTimestamp || 0;
 
         const [newsResponse, appDetailsResponse] = await Promise.all([
             fetch(newsApiUrl),
@@ -103,28 +106,22 @@ async function checkForSteamUpdates(appId) {
         const appDetails = appDetailsData?.[appId]?.data;
 
         if (newsItems && newsItems.length > 0 && appDetails) {
-            if (appId === 730) {
-                newsItems = newsItems.filter(item => item.title === 'Counter-Strike 2 Update');
-            }
+            let gameName = appDetails.name;
 
-            if (newsItems.length === 0) {
-                return { updated: false };
+            if (parseInt(appId) === 730) {
+                gameName = "Counter-Strike 2";
             }
 
             const latestNews = newsItems[0];
             const latestUpdateTimestamp = latestNews.date * 1000;
 
             if (latestUpdateTimestamp > lastKnownUpdate) {
-                data.Steam = data.Steam || {};
-                data.Steam[appId] = {
-                    lastUpdatedTimestamp: latestUpdateTimestamp,
-                    latestNews,
-                    appDetails
-                };
-                await writeJSON(DATA_FILE, data);
+                serverConfig.gameUpdates.Steam[appId].lastUpdatedTimestamp = latestUpdateTimestamp;
+                await writeJSON(path.join(SERVERS_DATA_PATH, `${serverConfig.guildId}.json`), serverConfig);
 
                 return {
                     updated: true,
+                    gameName,
                     latestUpdate: new Date(latestUpdateTimestamp).toISOString(),
                     latestNews,
                     appDetails
@@ -136,28 +133,54 @@ async function checkForSteamUpdates(appId) {
             throw new Error("No news items or app details found for this app.");
         }
     } catch (error) {
-        Error(`Error checking updates for Steam App ID ${appId}:`, error.message);
+        Error(`Error checking updates for Steam App ID ${appId}:\n${error.stack}`);
         return { updated: false };
     }
 }
 
 async function fetchGameUpdates(client) {
     try {
-        const monitoredData = await readJSON(MONITORED_FILE);
-        const robloxUniverseIds = monitoredData.Roblox || [];
-        const steamAppIds = monitoredData.Steam || [];
+        for (const [guildId, guild] of client.guilds.cache) {
+            const serverConfigPath = path.join(SERVERS_DATA_PATH, `${guildId}.json`);
 
-        for (const universeId of robloxUniverseIds) {
-            const result = await checkForRobloxUpdates(universeId);
-            if (result.updated) {
-                await sendUpdateToGuilds(client, result.apiData, 'Roblox');
+            let serverConfig;
+            try {
+                serverConfig = await readJSON(serverConfigPath);
+                serverConfig.guildId = guildId;
+            } catch {
+                continue;
             }
-        }
 
-        for (const appId of steamAppIds) {
-            const result = await checkForSteamUpdates(appId);
-            if (result.updated) {
-                await sendUpdateToGuilds(client, result, 'Steam');
+            if (!serverConfig.gameUpdates) {
+                serverConfig.gameUpdates = {};
+                await writeJSON(serverConfigPath, serverConfig);
+            }
+
+            const gameUpdates = serverConfig.gameUpdates;
+
+            if (gameUpdates.Steam) {
+                for (const appId of Object.keys(gameUpdates.Steam)) {
+                    const result = await Steam(appId, serverConfig);
+                    if (result.updated) {
+                        await sendUpdateToGuilds(client, result, 'Steam', appId, serverConfig);
+                    }
+                }
+            }
+
+            if (gameUpdates.Roblox) {
+                for (const universeId of Object.keys(gameUpdates.Roblox)) {
+                    const result = await Roblox(universeId, serverConfig);
+                    if (result.updated) {
+                        await sendUpdateToGuilds(client, result, 'Roblox', universeId, serverConfig);
+                    }
+                }
+            }
+
+            if (gameUpdates.MarvelRivals) {
+                const result = await MarvelRivals(serverConfig);
+                if (result.updated) {
+                    await sendUpdateToGuilds(client, result, 'MarvelRivals', null, serverConfig);
+                }
             }
         }
     } catch (error) {
@@ -165,15 +188,31 @@ async function fetchGameUpdates(client) {
     }
 }
 
-async function sendUpdateToGuilds(client, result, platform) {
+async function sendUpdateToGuilds(client, result, platform, id) {
     client.guilds.cache.forEach(async (guild) => {
         const serverConfigPath = path.join(SERVERS_DATA_PATH, `${guild.id}.json`);
         const serverConfig = await readJSON(serverConfigPath);
-        const gameUpdatesChannelId = serverConfig.gameUpdatesChannel;
 
-        if (gameUpdatesChannelId) {
-            const gameUpdatesChannel = guild.channels.cache.get(gameUpdatesChannelId);
+        if (!serverConfig.gameUpdates) {
+            serverConfig.gameUpdates = {};
+            await writeJSON(serverConfigPath, serverConfig);
+        }
 
+        let channelId;
+        const gameUpdates = serverConfig.gameUpdates[platform] || {};
+
+        if (id && gameUpdates[id]) {
+            channelId = gameUpdates[id].channelId;
+        }
+
+        else if (platform === 'MarvelRivals' && serverConfig.gameUpdates.MarvelRivals?.channelId) {
+            channelId = serverConfig.gameUpdates.MarvelRivals.channelId;
+        }
+
+        channelId = channelId || serverConfig.gameUpdatesChannel;
+
+        if (channelId) {
+            const gameUpdatesChannel = guild.channels.cache.get(channelId);
             if (gameUpdatesChannel) {
                 let embed;
                 if (platform === 'Roblox') {
@@ -188,7 +227,7 @@ async function sendUpdateToGuilds(client, result, platform) {
                 } else if (platform === 'Steam') {
                     const formattedContents = formatPatchNotes(result.latestNews.contents);
                     embed = GameUpdateEmbed(
-                        result.appDetails.developers ? result.appDetails.developers.join(', ') : 'Unknown Developer',
+                        result.appDetails.developers?.join(', ') || 'Unknown',
                         result.appDetails.name,
                         `https://store.steampowered.com/app/${result.appDetails.steam_appid}`,
                         formattedContents,
