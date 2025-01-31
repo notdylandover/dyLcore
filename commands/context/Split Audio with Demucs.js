@@ -1,14 +1,16 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed, SuccessEmbed, FileEmbed } = require("../../utils/embeds");
 const { PremiumFileEmbed } = require("../../utils/PremiumEmbeds");
 const { CommandError, Debug, Error } = require("../../utils/logging");
 const { exec } = require('child_process');
+
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
 module.exports = {
     premium: true,
+    enabled: false,
     data: new ContextMenuCommandBuilder()
         .setName("Split Audio with Demucs")
         .setType(ApplicationCommandType.Message)
@@ -34,7 +36,7 @@ module.exports = {
 
             if (audioUrls.length !== 1) {
                 const errorEmbed = ErrorEmbed('This command only works with one audio attachment.');
-                return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             const audioUrl = audioUrls[0];
@@ -68,7 +70,7 @@ module.exports = {
                 if (error) {
                     Error(`Error processing the audio file with Demucs:\n${stderr || error.message}`);
                     const errorEmbed = ErrorEmbed('Error processing the audio file with Demucs.');
-                    return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                    return await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 }
 
                 const separatedDir = path.join(tempDir, modal, path.basename(filePath, '.mp3'));
@@ -77,7 +79,7 @@ module.exports = {
 
                 if (!fs.existsSync(vocalPath) || !fs.existsSync(accompanimentPath)) {
                     const errorEmbed = ErrorEmbed('Failed to process the audio file.');
-                    return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                    return await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 }
 
                 const stopTime = Date.now();
@@ -109,9 +111,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             if (filePath && fs.existsSync(filePath)) {

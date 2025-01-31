@@ -4,7 +4,6 @@ const { createCanvas, loadImage } = require('canvas');
 const { AttachmentBuilder } = require('discord.js');
 
 const path = require('path');
-require('@tensorflow/tfjs-node-gpu');
 const faceapi = require('@vladmandic/face-api');
 const canvasModule = require('canvas');
 
@@ -12,7 +11,8 @@ faceapi.env.monkeyPatch({ Canvas: canvasModule.Canvas, Image: canvasModule.Image
 
 module.exports = {
     name: 'santafy',
-    private: false,
+    enabled: false,
+    private: true,
     async execute(message) {
         try {
             const attachment = message.attachments.first();

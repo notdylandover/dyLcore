@@ -4,20 +4,11 @@ const { exec } = require('child_process');
 const updateLibraries = async () => {
     try {
         const updatedLibraries = await new Promise((resolve, reject) => {
-            exec('ncu -u', (err, stdout) => {
+            exec('npx ncu -u', (err, stdout) => {
                 if (err) {
                     return reject(err);
                 }
                 resolve(stdout.trim());
-            });
-        });
-
-        await new Promise((resolve, reject) => {
-            exec('npm install', (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve();
             });
         });
 

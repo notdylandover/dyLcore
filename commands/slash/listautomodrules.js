@@ -1,10 +1,11 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { ErrorEmbed, AutomodRulesEmbed } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
 const { getAutomodRules } = require('../../utils/automod');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('listautomodrules')
         .setDescription('Lists the automod rules for the server')
@@ -20,7 +21,7 @@ module.exports = {
             const automodRules = await getAutomodRules(guildId, client);
             
             if (!automodRules || automodRules.length === 0) {
-                return await interaction.editReply({ content: 'No automod rules set for this server.', ephemeral: true });
+                return await interaction.editReply({ content: 'No automod rules set for this server.', flags: MessageFlags.Ephemeral });
             }
 
             const automodEmbed = AutomodRulesEmbed(automodRules);
@@ -32,9 +33,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

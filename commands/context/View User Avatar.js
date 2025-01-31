@@ -1,9 +1,10 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { MediaEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new ContextMenuCommandBuilder()
         .setName("View User Avatar")
         .setType(ApplicationCommandType.User)
@@ -21,9 +22,9 @@ module.exports = {
                 const errorEmbed = ErrorEmbed(`Could not retrieve ${targetUser}'s avatar`);
 
                 if (interaction.deferred || interaction.replied) {
-                    return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                    return await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 } else {
-                    return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    return await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 }
             }
 
@@ -35,9 +36,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

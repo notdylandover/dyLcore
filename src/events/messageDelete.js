@@ -18,10 +18,10 @@ module.exports = {
 
             let authorUsername = message.author ? message.author.username : 'Unknown user';
             let authorAvatar = message.author ? message.author.displayAvatarURL() : message.author.defaultAvatarURL();
-            let messageContent = message.content ? message.content.replace(/[\r\n]+/g, ' ') : '[No Content]';
+            let messageContent = message.content ? message.content.replace(/[\r\n]+/g, ' ') : '';
 
             if (message.embeds.length > 0) {
-                messageContent += ' EMBED ';
+                messageContent += ' EMBED '.bgYellow.black;
             }
 
             if (message.poll) {

@@ -1,6 +1,6 @@
 const { EMOJIS } = require('./constants');
 const axios = require('axios');
-const { Info } = require('./logging');
+const { Debug } = require('./logging');
 
 require('dotenv').config();
 
@@ -33,11 +33,19 @@ async function getCurrentWeather(lat, lon) {
         const feelsLike = data.main.feels_like.toFixed(0);
         const humidity = data.main.humidity;
         const windSpeed = data.wind.speed.toFixed(0);
+        const windDeg = data.wind.deg;
+        const windDirection = degreesToDirection(windDeg);
 
-        return { temperature, feelsLike, humidity, windSpeed };
+        return { temperature, feelsLike, humidity, windSpeed, windDirection };
     } catch (error) {
         throw new Error(`Error fetching current weather data: ${error.message}`);
     }
+}
+
+function degreesToDirection(degrees) {
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'N'];
+    const index = Math.round(degrees / 22.5);
+    return directions[index];
 }
 
 function getAQIDescription(aqi) {
@@ -156,17 +164,21 @@ function generateAlertURL(warnzone, warncounty, lat, lon, place) {
     return `https://forecast.weather.gov/showsigwx.php?warnzone=${warnzone}&warncounty=${warncounty}&firewxzone=${warnzone}&local_place1=${encodeURIComponent(place)}&lat=${lat}&lon=${lon}`;
 }
 
+function cleanCondition(condition) {
+    return condition
+        .replace(/\b(slight|chance|possible|scattered|conditions|likely|isolated|expected with|areas of)\b/gi, '')
+        .replace(/chance of \w+/i, '')
+        .replace(/then.*/i, '') 
+        .trim();
+}
+
 async function getWeeklyForecast(forecastUrl) {
     try {
         const response = await axios.get(forecastUrl);
         const periods = response.data.properties.periods;
 
         return periods.map(period => {
-            let cleanedCondition = period.shortForecast
-                .replace(/\b(chance|possible|scattered|conditions|slight|likely|isolated|expected with|areas of|patchy)\b/gi, '')
-                .replace(/chance of \w+/i, '')
-                .replace(/then.*/i, '') 
-                .trim();
+            let cleanedCondition = cleanCondition(period.shortForecast);
 
             return {
                 name: period.name,
@@ -186,11 +198,19 @@ async function getHourlyForecast(hourlyForecastUrl) {
     try {
         const response = await axios.get(hourlyForecastUrl);
         const hourlyPeriods = response.data.properties.periods;
-        return hourlyPeriods.map(period => ({
-            start: period.startTime,
-            temperature: period.temperature,
-            condition: period.shortForecast,
-        }));
+
+        return hourlyPeriods.map(period => {
+            let cleanedCondition = cleanCondition(period.shortForecast);
+
+            const rainPercentage = period.probabilityOfPrecipitation?.value || 0;
+
+            return {
+                start: period.startTime,
+                temperature: period.temperature,
+                condition: cleanedCondition,
+                rainPercentage
+            };
+        });
     } catch (error) {
         throw new Error(error.message);
     }
@@ -206,6 +226,7 @@ async function getRadarImage(office) {
 function getWeatherEmoji(condition) {
     const weatherEmojis = {
         'Fog': `${EMOJIS.weather_fog}`,
+        'Patchy Fog': `${EMOJIS.weather_fog}`,
         'Cloudy': `${EMOJIS.weather_cloud}`,
         'Mostly Cloudy': `${EMOJIS.weather_cloud}`,
         'Partly Cloudy': `${EMOJIS.weather_partsun}`,
@@ -217,6 +238,8 @@ function getWeatherEmoji(condition) {
         'Light Rain': `${EMOJIS.weather_rain}`,
         'Rain': `${EMOJIS.weather_rain}`,
         'Rain Showers': `${EMOJIS.weather_rain}`,
+        'Chance Rain Showers': `${EMOJIS.weather_rain}`,
+        'Slight Chance Rain Showers': `${EMOJIS.weather_rain}`,
         'Showers And Thunderstorms': `${EMOJIS.weather_storm}`,
         'Showers And Thunderstorms Likely': `${EMOJIS.weather_storm}`,
         'Tropical Storm': `${EMOJIS.weather_tropicalstorm}`,

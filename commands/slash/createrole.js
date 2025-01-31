@@ -1,12 +1,13 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { SuccessEmbed, ErrorEmbed } = require('../../utils/embeds');
 const { CommandError } = require("../../utils/logging");
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('createrole')
-        .setDescription('Create a new role with specific options')
+        .setDescription('Create a new role')
         .addStringOption(option => option
             .setName('name')
             .setDescription('The name of the role')
@@ -47,9 +48,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

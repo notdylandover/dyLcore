@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const { ErrorEmbed, SuccessEmbedRemodal } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 
@@ -7,6 +7,7 @@ const path = require('path');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName("setliverole")
         .setDescription('Set the role to give to users when they go live')
@@ -47,9 +48,9 @@ module.exports = {
 
             const errorEmbed = ErrorEmbed(error.message);
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

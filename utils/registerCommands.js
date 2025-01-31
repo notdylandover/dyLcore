@@ -32,7 +32,11 @@ const updateCommands = () => {
             try {
                 const command = require(commandPath);
 
-                if (command.data && typeof command.execute === 'function') {
+                if (
+                    command.data &&
+                    typeof command.execute === 'function' &&
+                    command.enabled !== false
+                ) {
                     commands.push(command.data.toJSON());
                 }
             } catch (error) {

@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { analyzeOCR } = require('../../utils/analyzeImage');
 const { ErrorEmbed, OCR } = require('../../utils/embeds');
 const { CommandError } = require('../../utils/logging');
@@ -8,6 +8,7 @@ const fs = require('fs');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new ContextMenuCommandBuilder()
         .setName('OCR')
         .setType(ApplicationCommandType.Message)
@@ -26,7 +27,7 @@ module.exports = {
 
             if (!attachment) {
                 const errorEmbed = ErrorEmbed('No image attachment found in the selected message.');
-                return interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             const fileExtension = path.extname(attachment.name).toLowerCase();
@@ -34,7 +35,7 @@ module.exports = {
 
             if (!validImageExtensions.includes(fileExtension)) {
                 const errorEmbed = ErrorEmbed(`Unsupported file format.\nSupported formats: ${validImageExtensions.join(', ')}.`);
-                return interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             const filePath = path.join(__dirname, `../../temp/${attachment.id}${fileExtension}`);
@@ -56,7 +57,7 @@ module.exports = {
             CommandError(interaction.commandName, error.stack);
 
             const errorEmbed = ErrorEmbed(error.message);
-            return interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+            return interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
         }
     }
 };

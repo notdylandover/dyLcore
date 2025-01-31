@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed, WeatherEmbed } = require('../../utils/embeds');
 const { CommandError, Info } = require("../../utils/logging");
 const { EMOJIS } = require('../../utils/constants');
@@ -22,6 +22,7 @@ const {
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('weather')
         .setDescription('Get the weather for a specific location by ZIP code')
@@ -50,7 +51,7 @@ module.exports = {
             const hourlyForecast = await getHourlyForecast(forecastProperties.forecastHourly);
 
             const currentWeather = await getCurrentWeather(lat, lon);
-            const { temperature: currentTemperature, feelsLike, humidity, windSpeed } = currentWeather;
+            const { temperature: currentTemperature, feelsLike, humidity, windSpeed, windDirection } = currentWeather;
 
             const currentWeatherEmoji = getWeatherEmoji(currentCondition);
             const emojiIdMatch = currentWeatherEmoji.match(/:(\d+)>/);
@@ -68,7 +69,7 @@ module.exports = {
             const aqiDescription = getAQIDescription(aqi);
 
             const location = `${city}, ${state}`;
-
+            
             const dailyData = {};
             const now = new Date();
             const currentDateTime = new Date(now.toLocaleString("en-US", { timeZone }));
@@ -110,7 +111,8 @@ module.exports = {
                         time,
                         temperature: period.temperature,
                         condition: period.condition,
-                        emoji: getWeatherEmoji(period.condition)
+                        emoji: getWeatherEmoji(period.condition),
+                        rainPercentage: period.rainPercentage,
                     });
 
                     if (hourlyData.length === 5) break;
@@ -120,17 +122,18 @@ module.exports = {
             let description =
                 `> \` Feels Like  \` \` ${feelsLike}°F \`\n` +
                 `> \` Humidity    \` \` ${humidity}% \`\n` +
-                `> \` Wind Speed  \` \` ${windSpeed} mph \`\n` +
-                `> \` Air Quality \` \` ${aqi} (${aqiDescription}) \`\n`;
+                `> \` Wind Speed  \` \` ${windSpeed} mph ${windDirection} \`\n` +
+                `> \` Air Quality \` \` ${aqi} (${aqiDescription}) \``;
 
-            description += '## Next 5 Hours\n';
+            description += '\n## Next 5 Hours';
+
             hourlyData.forEach(period => {
-                description += `> **\` ${period.time} \`** ${period.emoji} \` ${period.temperature}°F \`\n`;
+                description += `\n> **\` ${period.time} \`** ${period.emoji} \` ${period.temperature}°F \` \` ${period.rainPercentage}% \``;
             });
 
             const upcomingDays = Object.keys(dailyData).slice(0, 6);
 
-            description += '## Daily Forecast\n';
+            description += '\n## Daily Forecast';
             upcomingDays.forEach(date => {
                 const { high, low, condition } = dailyData[date];
 
@@ -138,11 +141,11 @@ module.exports = {
                 const lowDisplay = low !== null ? `${low}°F` : '    ';
 
                 const emoji = getWeatherEmoji(condition);
-                description += `> **\`  ${date}  \`** ${emoji} \` ${highDisplay} / ${lowDisplay} \`\n`;
+                description += `\n> **\`  ${date}  \`** ${emoji} \` ${highDisplay} / ${lowDisplay} \``;
             });
 
             if (alerts.length > 0) {
-                description += '\n## Alerts\n';
+                description += '\n## Alerts';
 
                 const today = new Date().toLocaleDateString('en-US', { timeZone });
 
@@ -159,7 +162,7 @@ module.exports = {
 
                     const learnMoreUrl = generateAlertURL(zoneData.forecastZone, zoneData.county, zoneData.lat, zoneData.lon, location);
 
-                    description += `**${EMOJIS.weather_alert} ${alert.event}**\n- Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
+                    description += `\n> **${EMOJIS.weather_alert} ${alert.event}**\n> -# Until ${expiresDate} - [Learn More](${learnMoreUrl})\n\n`;
                 });
             }
 
@@ -177,8 +180,6 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
-            Info(error.response.status);
-
             const errorEmbed = ErrorEmbed(
                 error.response && error.response.status === 500
                     ? "Location not found."
@@ -186,9 +187,9 @@ module.exports = {
             );
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

@@ -22,13 +22,13 @@ module.exports = async function closeTicket(interaction) {
     const serverData = JSON.parse(fs.readFileSync(serverDataPath, 'utf-8'));
 
     if (!serverData.activeTickets || !serverData.activeTickets[ticketChannel.id]) {
-        return await interaction.reply({ content: 'This ticket does not exist.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket does not exist.', flags: MessageFlags.Ephemeral });
     }
 
     const ticketData = serverData.activeTickets[ticketChannel.id];
 
     if (ticketData.status === "Closed") {
-        return await interaction.reply({ content: 'This ticket is already closed.', ephemeral: true });
+        return await interaction.reply({ content: 'This ticket is already closed.', flags: MessageFlags.Ephemeral });
     }
 
     const isModerator = interaction.member.roles.cache.some(role => role.name === 'Ticket Moderator');
@@ -80,9 +80,9 @@ module.exports = async function closeTicket(interaction) {
 
         fs.writeFileSync(serverDataPath, JSON.stringify(serverData, null, 2));
 
-        await submitted.reply({ content: 'The ticket has been successfully closed.', ephemeral: true });
+        await submitted.reply({ content: 'The ticket has been successfully closed.', flags: MessageFlags.Ephemeral });
         return ticketChannel.send(`The ticket has been closed by ${interaction.user.username}.`);
     } else {
-        return await interaction.reply({ content: 'You cannot close this ticket.', ephemeral: true });
+        return await interaction.reply({ content: 'You cannot close this ticket.', flags: MessageFlags.Ephemeral });
     }
 };

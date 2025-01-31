@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 const { createCanvas, loadImage } = require('canvas');
@@ -10,6 +10,7 @@ const sharp = require('sharp');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new ContextMenuCommandBuilder()
         .setName("Make It A Quote")
         .setType(ApplicationCommandType.Message)
@@ -82,6 +83,7 @@ module.exports = {
                         line = testLine;
                     }
                 }
+                
                 lines.push(line);
 
                 for (let j = 0; j < lines.length; j++) {
@@ -101,14 +103,18 @@ module.exports = {
             ctx.font = '16px Arial';
             ctx.fillText(`- ${user.displayName}`, contentX, authorY);
 
-            const tempDir = path.join(__dirname, '../temp');
+            const tempDir = path.join(__dirname, '..', '..', 'temp');
+
             if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir, { recursive: true });
             }
+
             const quoteImagePath = path.join(tempDir, 'quote.png');
             const out = fs.createWriteStream(quoteImagePath);
             const stream = canvas.createPNGStream();
+
             stream.pipe(out);
+
             out.on('finish', async () => {
                 await interaction.editReply({ files: [quoteImagePath] });
 
@@ -120,9 +126,9 @@ module.exports = {
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     },

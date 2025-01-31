@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { ErrorEmbed, StatsEmbed } = require('../../utils/embeds');
 const { CommandError, Error } = require('../../utils/logging');
 const { fetchCommandCount } = require('../../utils/registerCommands');
@@ -7,6 +7,7 @@ const axios = require('axios');
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new SlashCommandBuilder()
         .setName('stats')
         .setDescription(`Get information about dyLcore`)
@@ -82,16 +83,16 @@ module.exports = {
                 'N/A'
             );
 
-            await interaction.editReply({ embeds: [statsEmbed], ephemeral: true });
+            await interaction.editReply({ embeds: [statsEmbed], flags: MessageFlags.Ephemeral });
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
 
             const errorEmbed = ErrorEmbed(error.message);
 
             if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
         }
     }

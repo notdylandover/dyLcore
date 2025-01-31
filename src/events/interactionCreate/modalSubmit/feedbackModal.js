@@ -1,6 +1,7 @@
+const { MessageFlags } = require('discord.js');
+const { SuccessEmbedRemodal } = require('../../../../utils/embeds');
 const fs = require('fs');
 const path = require('path');
-const { SuccessEmbedRemodal } = require('../../../../utils/embeds');
 
 module.exports = async function handleFeedbackModal(interaction) {
     const feedback = interaction.fields.getTextInputValue('feedbackInput');
@@ -29,7 +30,7 @@ module.exports = async function handleFeedbackModal(interaction) {
         });
 
         const successEmbed = SuccessEmbedRemodal(`Ticket Closed`);
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
         await ticketChannel.send({ embeds: [successEmbed] });
     } else {
         return;

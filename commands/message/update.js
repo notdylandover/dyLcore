@@ -1,11 +1,12 @@
 const { DoneEmbed } = require('../../utils/embeds');
-const { Error } = require('../../utils/logging');
+const { CommandError } = require('../../utils/logging');
 const { updateLibraries } = require('../../utils/updateLibraries');
 const { updateEmojis } = require('../../utils/updateEmojis');
 const { registerCommands } = require('../../utils/registerCommands');
 
 module.exports = {
     name: 'update',
+    enabled: true,
     private: true,
     async execute(message) {
         try {

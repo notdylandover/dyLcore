@@ -1,5 +1,6 @@
 const { ChannelType } = require('discord.js');
 const { voiceStateUpdate, Error, Debug } = require('../../utils/logging');
+const { afkJoinTimes } = require('../../utils/afkTracker');
 const fs = require('fs');
 const path = require('path');
 
@@ -52,6 +53,29 @@ module.exports = {
                 : action === 'Request to Speak' ? 'cyan' : 'gray';
 
             voiceStateUpdate(`${server.cyan} - ${channel.cyan} - ${globalName.cyan} - ${action[actionColor]}`);
+
+            const key = `${newState.guild.id}-${member.id}`;
+
+            if (newState.channel && newState.channel.id === newState.guild.afkChannelId) {
+                afkJoinTimes.set(key, Date.now());
+            } else {
+                afkJoinTimes.delete(key);
+            }
+
+            const username = member.user.username;
+            const usersDir = path.resolve(__dirname, `../../data/users/${username}`);
+            if (!fs.existsSync(usersDir)) {
+                fs.mkdirSync(usersDir, { recursive: true });
+            }
+            const voiceStateFile = path.join(usersDir, 'voiceState.json');
+            const currentVoiceState = {
+                timestamp: new Date().toISOString(),
+                action,
+                server,
+                channel
+            };
+            fs.writeFileSync(voiceStateFile, JSON.stringify(currentVoiceState, null, 2), 'utf-8');
+
 
             const settingsFilePath = path.resolve(__dirname, `../../data/servers/${newState.guild.id}.json`);
             if (fs.existsSync(settingsFilePath)) {

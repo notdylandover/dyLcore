@@ -1,7 +1,8 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const { MediaEmbed, ErrorEmbed } = require("../../utils/embeds");
 const { CommandError } = require("../../utils/logging");
 const { exec } = require('child_process');
+
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
@@ -17,6 +18,7 @@ const execPromise = util.promisify(exec);
 
 module.exports = {
     premium: false,
+    enabled: true,
     data: new ContextMenuCommandBuilder()
         .setName("Convert to MP3")
         .setType(ApplicationCommandType.Message)
@@ -34,7 +36,7 @@ module.exports = {
 
             if (attachments.size === 0) {
                 const errorEmbed = ErrorEmbed('No video attachments found to convert.');
-                return await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             const attachment = attachments.first();
@@ -51,7 +53,7 @@ module.exports = {
                 await interaction.followUp({ files: [mp3Path] });
             } else {
                 const errorEmbed = ErrorEmbed('MP3 file was not created successfully.');
-                await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.followUp({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
             }
 
             fs.unlinkSync(videoPath);
@@ -60,7 +62,7 @@ module.exports = {
         } catch (error) {
             CommandError(interaction.commandName, error.stack);
             const errorEmbed = ErrorEmbed(error.message);
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
         }
     }
 };

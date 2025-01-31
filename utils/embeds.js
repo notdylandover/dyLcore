@@ -86,7 +86,7 @@ module.exports.WeatherEmbed = function(currentCondition, currentConditionEmoji, 
         .setTimestamp()
         .setFooter({
             iconURL: LINKS.brand,
-            text: `${TEXT.brand} • NWS`
+            text: `${TEXT.brand} • NOAA • NWS`
         });
 };
 
@@ -142,30 +142,6 @@ module.exports.messageUpdate = function(oldMessage, newMessage) {
             `**\` ${newMessage.author ? newMessage.author.tag : 'Unknown'} \` - \` ${newMessage.content ? newMessage.content : 'Unknown'} \`**\n\n` +
             `-# [\` Go to message \`](${newMessage.url})`
         )
-        .setFooter({
-            iconURL: LINKS.brand,
-            text: TEXT.brand
-        })
-        .setTimestamp()
-};
-
-module.exports.guildMemberUpdateMedia = function(change, member, URL) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.default)
-        .setTitle(`${member.username} changed their ${change}`)
-        .setImage(URL)
-        .setFooter({
-            iconURL: LINKS.brand,
-            text: TEXT.brand
-        })
-        .setTimestamp()
-};
-
-module.exports.guildMemberUpdateName = function(change, username, oldMemberName, newMemberName) {
-    return embed = new EmbedBuilder()
-        .setColor(COLORS.default)
-        .setTitle(`${username} changed their ${change}`)
-        .setDescription(`**\` ${oldMemberName} \` → \` ${newMemberName} \`**`)
         .setFooter({
             iconURL: LINKS.brand,
             text: TEXT.brand
