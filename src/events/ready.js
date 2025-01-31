@@ -1,5 +1,5 @@
 const { registerCommands } = require('../../utils/registerCommands');
-const { Error } = require('../../utils/logging');
+const { Debug, Error } = require('../../utils/logging');
 const { fetchAllEntitlements } = require('../../utils/entitlement');
 const { fetchGameUpdates } = require('../../utils/gameUpdates');
 const { afkJoinTimes } = require('../../utils/afkTracker');
