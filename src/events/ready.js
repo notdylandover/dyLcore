@@ -27,7 +27,7 @@ module.exports = {
             cron.schedule("*/1 * * * *", async () => {
                 const now = Date.now();
 
-                const threshold = 10 * 60000; // 10 Minutes
+                const threshold = 10 * 60000;
 
                 for (const [key, joinTime] of afkJoinTimes.entries()) {
                     if (now - joinTime > threshold) {
@@ -40,6 +40,7 @@ module.exports = {
                                 try {
                                     Debug(`Disconnecting ${member.user.tag} from AFK channel (idle too long)`);
                                     await member.voice.disconnect();
+                                    await member.send(`Hi **${member.user.displayName}**, I've disconnected you from the AFK channel in **${guild.name}** due to longer inactivity. If you think this is a mistake, please contact \`_dyln\`.`);
                                 } catch (error) {
                                     Error(`Error disconnecting AFK member ${member.user.tag}: ${error.message}`);
                                 }
