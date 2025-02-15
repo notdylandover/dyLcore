@@ -32,7 +32,7 @@ module.exports = {
 
             let attachmentNote = '';
             if (message.attachments.size > 0) {
-                attachmentNote = '\n-# This message also included attachments that were deleted.';
+                attachmentNote = '\n-# This message had attachments that were deleted.';
             }
 
             if (!message.inGuild()) {
@@ -42,6 +42,9 @@ module.exports = {
             if (message.author && message.author.bot) {
                 return messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);
             }
+
+            // Credit to long_arm for this idea <3
+            await message.channel.send('I saw what you deleted...');
 
             messageDelete(`${serverName.cyan} - ${('#' + channelName).cyan} - ${authorUsername.cyan} - ${messageContent} ${'(Deleted)'.red}`);
 

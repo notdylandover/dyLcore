@@ -24,7 +24,7 @@ module.exports = {
                 await fetchGameUpdates(client);
             });
 
-            cron.schedule("*/1 * * * *", async () => {
+            cron.schedule("*/10 * * * * *", async () => {
                 const now = Date.now();
 
                 const threshold = 10 * 60000;
@@ -40,7 +40,11 @@ module.exports = {
                                 try {
                                     Debug(`Disconnecting ${member.user.tag} from AFK channel (idle too long)`);
                                     await member.voice.disconnect();
-                                    await member.send(`Hi **${member.user.displayName}**, I've disconnected you from the AFK channel in **${guild.name}** due to longer inactivity. If you think this is a mistake, please contact \`_dyln\`.`);
+                                    if (member.id == '351068799493210113' || member.id == '458854676557856790') {
+                                        await member.send('<:fuckyou:1337159479384473601>');
+                                    } else {
+                                        await member.send(`Hi ${member.user.displayName}, I've disconnected you from the AFK channel in ${guild.name} due to longer inactivity.`);
+                                    }
                                 } catch (error) {
                                     Error(`Error disconnecting AFK member ${member.user.tag}: ${error.message}`);
                                 }
